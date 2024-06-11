@@ -14,10 +14,10 @@ export default function Home() {
       if (user.publicMetadata.role === 'student') {
         router.push('/student-dashboard'); // Redirect to student dashboard
       } else if (user.publicMetadata.role === 'teacher') {
-        router.push('/teacher-dashboard'); // Redirect to teacher dashboard
+        router.push('/teacher-dashboard'); // Redirect to teacher dashboard 
       }
     }
-  }, [isLoaded, isSignedIn, user, router]);
+  }, [isLoaded, isSignedIn, user, router]);  
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
