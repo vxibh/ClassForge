@@ -11,7 +11,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onItemClick }) => {
   const router = useRouter();
   const menuItems = [
     { id: 'dashboard', name: 'Dashboard' },
-    { id: 'assignments', name: 'Assignments' },
+    { id: 'enrolled', name: 'Enrolled' },
     { id: 'problems', name: 'Problems' },
     { id: 'to-do', name: 'To-Do' },
     { id: 'submissions', name: 'Submissions' },
@@ -39,6 +39,9 @@ const Sidebar: React.FC<SidebarProps> = ({ onItemClick }) => {
       case 'dashboard':
         router.push('/student-dashboard');
         break;
+      case 'enrolled':
+        router.push('/enrolled');
+        break;  
       // Add more cases as needed
       default:
         break;

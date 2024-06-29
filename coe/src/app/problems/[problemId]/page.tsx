@@ -24,6 +24,7 @@ const problemsData: Record<string, Problem> = {
       { input: 'nums = [3,2,4], target = 6', output: 'Output: [1,2]' },
     ],
   },
+  
   // Add more problems as needed
 };
 
