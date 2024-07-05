@@ -19,6 +19,26 @@ export default function Home() {
     }
   }, [isLoaded, isSignedIn, user, router]);  
 
+  const handleCreateClassroom = async (formData) => {
+    try {
+      const response = await fetch('http://localhost:3000/create-classroom', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+      const data = await response.json();
+      if (data.success) {
+        console.log('Classroom created successfully:', data.classroom);
+        // Optionally update state or fetch courses again after creating classroom
+      } else {
+        console.error('Failed to create classroom:', data.error);
+      }
+    } catch (error) {
+      console.error('Error creating classroom:', error);
+    }
+  };
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="max-w-md w-full bg-white p-8 rounded-lg shadow-md">

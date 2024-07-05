@@ -1,17 +1,21 @@
-'use client'
+'use client';
+
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useSignUp } from '@clerk/nextjs';
 import * as Clerk from '@clerk/elements/common';
 import * as SignUp from '@clerk/elements/sign-up'; 
 
 export default function SignUpPage() {
+  const { isLoaded, signUp } = useSignUp() as unknown as { isLoaded: boolean, signUp: { create: (data: { username: string, password: string }) => Promise<any>, setSession: (sessionId: string) => Promise<any> } };
+  const router = useRouter();
   const [formData, setFormData] = useState({
     username: '',
     password: '',
-    role: 'student',
-    publicMetadata: { role: 'student' }, // Default role is set to student
+    role: 'student', // Default role is set to student
   });
 
-  const handleChange = (e: { target: { name: any; value: any; }; }) => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({
       ...prevData,
@@ -21,19 +25,28 @@ export default function SignUpPage() {
 
   const handleSignUp = async () => {
     try {
+      if (!isLoaded) return;
+
       // Update the publicMetadata with the selected role
-      const result = await SignUp.create({
+      const result = await signUp.create({
         username: formData.username,
         password: formData.password,
-        metadata: {
-          publicMetadata: {
-            role: formData.role,
-          },
-        },
       });
 
-      // Handle the result here
-      console.log(result);
+      if (result.status === 'complete') {
+        await signUp.setSession(result.createdSessionId);
+        
+        // Redirect to the appropriate dashboard based on the role
+        if (formData.role === 'student') {
+          router.push('/student-dashboard');
+        } else if (formData.role === 'teacher') {
+          router.push('/teacher-dashboard');
+        }
+
+        console.log('Sign up successful:', result);
+      } else {
+        console.log('Sign up incomplete:', result);
+      }
     } catch (error) {
       console.error('Sign up failed:', error);
     }
@@ -48,33 +61,40 @@ export default function SignUpPage() {
         >
           <header className="text-center">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 40 40" className="mx-auto size-10">
-                <mask id="a" width="40" height="40" x="0" y="0" maskUnits="userSpaceOnUse">
-                  <circle cx="20" cy="20" r="20" fill="#D9D9D9" />
-                </mask>
-                <g fill="#fff" mask="url(#a)">
-                  {/* SVG Paths */}
-                </g>
-              </svg>
-              <h1 className="mt-4 text-xl font-medium tracking-tight text-white">Hello</h1>
+              <mask id="a" width="40" height="40" x="0" y="0" maskUnits="userSpaceOnUse">
+                <circle cx="20" cy="20" r="20" fill="#D9D9D9" />
+              </mask>
+              <g fill="#fff" mask="url(#a)">
+                {/* SVG Paths */}
+              </g>
+            </svg>
+            <h1 className="mt-4 text-xl font-medium tracking-tight text-white">Hello</h1>
           </header>
           <Clerk.GlobalError className="block text-sm text-red-400" />
           <div className="space-y-4">
             <Clerk.Field name="username" className="space-y-2">
               <Clerk.Label className="text-sm font-medium text-white">Username</Clerk.Label>
-                <Clerk.Input
-                  type="text"
-                  required
-                  className="w-full rounded-md bg-neutral-900 px-3.5 py-2 text-sm text-white outline-none ring-1 ring-inset ring-zinc-700 hover:ring-zinc-600 focus:bg-transparent focus:ring-[1.5px] focus:ring-blue-400 data-[invalid]:ring-red-400"/>
-                <Clerk.FieldError className="block text-sm text-red-400" />
+              <Clerk.Input
+                type="text"
+                name="username"
+                value={formData.username}
+                onChange={handleChange}
+                required
+                className="w-full rounded-md bg-neutral-900 px-3.5 py-2 text-sm text-white outline-none ring-1 ring-inset ring-zinc-700 hover:ring-zinc-600 focus:bg-transparent focus:ring-[1.5px] focus:ring-blue-400 data-[invalid]:ring-red-400"
+              />
+              <Clerk.FieldError className="block text-sm text-red-400" />
             </Clerk.Field>
             <Clerk.Field name="password" className="space-y-2">
-                <Clerk.Label className="text-sm font-medium text-white">Password</Clerk.Label>
-                  <Clerk.Input
-                    type="password"
-                    required
-                    className="w-full rounded-md bg-neutral-900 px-3.5 py-2 text-sm text-white outline-none ring-1 ring-inset ring-zinc-700 hover:ring-zinc-600 focus:bg-transparent focus:ring-[1.5px] focus:ring-blue-400 data-[invalid]:ring-red-400"
-                  />
-                  <Clerk.FieldError className="block text-sm text-red-400" />
+              <Clerk.Label className="text-sm font-medium text-white">Password</Clerk.Label>
+              <Clerk.Input
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+                className="w-full rounded-md bg-neutral-900 px-3.5 py-2 text-sm text-white outline-none ring-1 ring-inset ring-zinc-700 hover:ring-zinc-600 focus:bg-transparent focus:ring-[1.5px] focus:ring-blue-400 data-[invalid]:ring-red-400"
+              />
+              <Clerk.FieldError className="block text-sm text-red-400" />
             </Clerk.Field>
             <div className="space-y-2">
               <label className="text-sm font-medium text-white">Role</label>

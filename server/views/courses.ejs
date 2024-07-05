@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Google Classroom Courses</title>
+</head>
+<body>
+  <h1>Courses</h1>
+  <% if (courses.length > 0) { %>
+    <ul>
+      <% courses.forEach(course => { %>
+        <li><%= course.name %> (<%= course.id %>)</li>
+      <% }); %>
+    </ul>
+  <% } else { %>
+    <p>No courses found.</p>
+  <% } %>
+</body>
+</html>
