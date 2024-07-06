@@ -1,8 +1,9 @@
 // src/components/PostList.tsx
+
 import React from 'react';
 
 interface Post {
-  id: string;
+  _id: string; // Adjusted to _id if you changed the structure
   title: string;
   description: string;
   date: string;
@@ -18,9 +19,9 @@ const PostList: React.FC<PostListProps> = ({ posts, onPostClick }) => {
     <div className="grid grid-cols-1 gap-4">
       {posts.map(post => (
         <div
-          key={post.id}
+          key={post._id}
           className="bg-white rounded-lg shadow-md p-4 cursor-pointer hover:bg-gray-50"
-          onClick={() => onPostClick(post.id)}
+          onClick={() => onPostClick(post._id)}
         >
           <h3 className="text-xl font-semibold mb-2">{post.title}</h3>
           <p className="text-gray-700">{post.description}</p>

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useRouter } from 'next/navigation';
@@ -9,64 +8,54 @@ import ClassInfoCard from '@/components/ClassInfoCard';
 import PostList from '@/components/PostList';
 
 interface Post {
-  id: string;
+  _id: string; // Assuming each post has an _id
   title: string;
   description: string;
-  date: string;
+  date: string; // Assuming the date is in ISO format '2024-06-20T00:00:00.000Z'
 }
 
 interface ClassData {
-  [key: string]: {
-    title: string;
-    description: string;
-    posts: Post[];
-  };
+  title: string;
+  description: string;
+  posts: Post[];
 }
 
-const classData: ClassData = {
-  class1: {
-    title: 'Introduction to Algorithms',
-    description: 'Learn the basics of algorithms and data structures.',
-    posts: [
-      { id: 'p1', title: 'Assignment 1', description: 'Solve algorithm problems.', date: '2024-06-20' },
-      { id: 'p2', title: 'Study Material', description: 'Read the provided notes on algorithms.', date: '2024-06-21' },
-    ],
-  },
-  class2: {
-    title: 'Advanced Machine Learning',
-    description: 'Dive deep into machine learning algorithms and techniques.',
-    posts: [
-      { id: 'p1', title: 'Project Proposal', description: 'Submit project proposal.', date: '2024-06-18' },
-      { id: 'p2', title: 'Homework 1', description: 'Implement a machine learning algorithm.', date: '2024-06-20' },
-    ],
-  },
-  class3: {
-    title: 'Web Development Bootcamp',
-    description: 'Build modern web applications using the latest technologies.',
-    posts: [
-      { id: 'p1', title: 'Build a Website', description: 'Create a personal portfolio website.', date: '2024-06-15' },
-      { id: 'p2', title: 'React Project', description: 'Develop a project using React.', date: '2024-06-19' },
-    ],
-  },
+const formatDate = (isoDate: string): string => {
+  // Extract the date part before 'T'
+  const datePart = isoDate.split('T')[0];
+  return datePart;
 };
 
 const ClassPage = ({ params }: { params: { classId: string } }) => {
   const [activeItem, setActiveItem] = useState<string>('posts');
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [className, setClassName] = useState<string>('');
-  const [classDescription, setClassDescription] = useState<string>('');
+  const [classData, setClassData] = useState<ClassData | null>(null);
   const router = useRouter();
   const { classId } = params;
 
-  useEffect(() => {
-    const classInfo = classData[classId as keyof typeof classData];
-    if (classInfo) {
-      setClassName(classInfo.title);
-      setClassDescription(classInfo.description);
-      setPosts(classInfo.posts);
-    } else {
+  const fetchClassData = async () => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/classes/${classId}`, {
+        method: 'GET',
+      });
+      const data = await response.json();
+      if (data) {
+        // Format dates in posts
+        const formattedPosts = data.posts.map((post: Post) => ({
+          ...post,
+          date: formatDate(post.date),
+        }));
+        setClassData({ ...data, posts: formattedPosts });
+      } else {
+        router.push('/enrolled-classes');
+      }
+    } catch (error) {
+      console.error('Error fetching class data:', error);
       router.push('/enrolled-classes');
     }
+  };
+
+  useEffect(() => {
+    fetchClassData();
   }, [classId, router]);
 
   const handleMenuItemClick = (itemId: string) => {
@@ -74,8 +63,13 @@ const ClassPage = ({ params }: { params: { classId: string } }) => {
   };
 
   const handlePostClick = (postId: string) => {
+    // Redirect to the post page with the postId
     router.push(`/classes/${classId}/posts/${postId}`);
   };
+
+  if (!classData) {
+    return <div>Loading...</div>; // You can add a loading indicator while fetching data
+  }
 
   return (
     <div className="h-screen flex flex-col">
@@ -83,8 +77,8 @@ const ClassPage = ({ params }: { params: { classId: string } }) => {
       <div className="flex flex-1" style={{ marginTop: "56px" }}>
         <Sidebar onItemClick={handleMenuItemClick} />
         <div className="flex-1 p-4 bg-gray-100 overflow-y-auto">
-          <ClassInfoCard title={className} description={classDescription} />
-          {activeItem === 'posts' && <PostList posts={posts} onPostClick={handlePostClick} />}
+          <ClassInfoCard title={classData.title} description={classData.description} />
+          {activeItem === 'posts' && <PostList posts={classData.posts} onPostClick={handlePostClick} />}
           {/* Add more conditional rendering based on `activeItem` if needed */}
         </div>
       </div>

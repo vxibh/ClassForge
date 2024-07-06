@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Editor } from "@monaco-editor/react";
 import LanguageSelector from "./LanguageSelector";
 import Output from "./Output";
@@ -12,6 +12,15 @@ const CodeEditor = () => {
   const onMount = (editor) => {
     editorRef.current = editor;
     editor.focus();
+
+    // Disable paste
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyV, () => {
+      console.log("Paste is disabled");
+    });
+
+    editor.addCommand(monaco.KeyMod.Shift | monaco.KeyCode.Insert, () => {
+      console.log("Paste is disabled");
+    });
   };
 
   const onSelect = (language) => {

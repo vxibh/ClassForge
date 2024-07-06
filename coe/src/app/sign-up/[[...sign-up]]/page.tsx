@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react';
 import * as Clerk from '@clerk/elements/common';
-import * as SignUp from '@clerk/elements/sign-up'; 
+import * as SignUp from '@clerk/elements/sign-up';
 
 export default function SignUpPage() {
   const [formData, setFormData] = useState({
@@ -110,4 +110,4 @@ export default function SignUpPage() {
       </SignUp.Root>
     </div>
   );
-} 
+}

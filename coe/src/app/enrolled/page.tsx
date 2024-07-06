@@ -1,4 +1,3 @@
-// src/app/enrolled-classes/enrolled-classes.tsx
 'use client';
 
 import Navbar from '@/components/Navbar';
@@ -7,23 +6,30 @@ import AnnouncementBar from '@/components/AnnouncementBar';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-const classesList = [
-  { id: 'class1', title: 'Introduction to Algorithms', description: 'Learn the basics of algorithms and data structures.' },
-  { id: 'class2', title: 'Advanced Machine Learning', description: 'Dive deep into machine learning algorithms and techniques.' },
-  { id: 'class3', title: 'Web Development Bootcamp', description: 'Build modern web applications using the latest technologies.' },
-  // Add more classes as needed
-];
-
 const EnrolledClassesPage = () => {
   const [activeItem, setActiveItem] = useState<string>('classes');
+  const [classesList, setClassesList] = useState([]);
   const router = useRouter();
 
   const handleMenuItemClick = (itemId: string) => {
     setActiveItem(itemId);
   };
 
+  const fetchClasses = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/classes', {
+        method: 'GET',
+      });
+      const data = await response.json();
+      setClassesList(data);
+    } catch (error) {
+      console.error('Error fetching classes:', error);
+    }
+  };
+
   useEffect(() => {
     setActiveItem('classes');
+    fetchClasses();
   }, []);
 
   const handleClassClick = (classId: string) => {
@@ -39,7 +45,11 @@ const EnrolledClassesPage = () => {
           <h1 className="text-2xl font-bold mb-4">Enrolled Classes</h1>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {classesList.map(classItem => (
-              <div key={classItem.id} className="bg-white rounded-lg shadow-md p-4 cursor-pointer hover:bg-gray-50" onClick={() => handleClassClick(classItem.id)}>
+              <div
+                key={classItem._id}
+                className="bg-white rounded-lg shadow-md p-4 cursor-pointer hover:bg-gray-50"
+                onClick={() => handleClassClick(classItem._id)}
+              >
                 <h2 className="text-xl font-semibold mb-2">{classItem.title}</h2>
                 <p className="text-gray-700">{classItem.description}</p>
               </div>

@@ -1,4 +1,3 @@
-// src/app/classes/[classId]/posts/[postId]/page.tsx
 'use client';
 
 import { useRouter } from 'next/navigation';
@@ -22,85 +21,10 @@ interface Post {
   materials: Material[];
 }
 
-interface ClassData {
-  title: string;
-  description: string;
-  posts: Post[];
-}
-
-const classData: Record<string, ClassData> = {
-  class1: {
-    title: 'Introduction to Algorithms',
-    description: 'Learn the basics of algorithms and data structures.',
-    posts: [
-      {
-        id: 'p1',
-        title: 'Assignment 1',
-        description: 'Solve algorithm problems.',
-        content: 'Detailed content of Assignment 1',
-        date: '2024-06-20',
-        dueDate: '2024-07-01',
-        materials: [{ type: 'PDF', link: '/path/to/assignment1.pdf' },{ type: 'WORD', link: '/path/to/assignment1.docx' }],
-      },
-      {
-        id: 'p2',
-        title: 'Study Material',
-        description: 'Read the provided notes on algorithms.',
-        content: 'Detailed content of Study Material',
-        date: '2024-06-21',
-        dueDate: '',
-        materials: [{ type: 'PDF', link: '/path/to/study-material.pdf' }],
-      },
-    ],
-  },
-  class2: {
-    title: 'Advanced Machine Learning',
-    description: 'Dive deep into machine learning algorithms and techniques.',
-    posts: [
-      {
-        id: 'p1',
-        title: 'Project Proposal',
-        description: 'Submit project proposal.',
-        content: 'Detailed content of Project Proposal',
-        date: '2024-06-18',
-        dueDate: '2024-07-05',
-        materials: [{ type: 'Doc', link: '/path/to/project-proposal.docx' }],
-      },
-      {
-        id: 'p2',
-        title: 'Homework 1',
-        description: 'Implement a machine learning algorithm.',
-        content: 'Detailed content of Homework 1',
-        date: '2024-06-20',
-        dueDate: '2024-07-10',
-        materials: [{ type: 'PDF', link: '/path/to/homework1.pdf' }],
-      },
-    ],
-  },
-  class3: {
-    title: 'Web Development Bootcamp',
-    description: 'Build modern web applications using the latest technologies.',
-    posts: [
-      {
-        id: 'p1',
-        title: 'Build a Website',
-        description: 'Create a personal portfolio website.',
-        content: 'Detailed content of Build a Website',
-        date: '2024-06-15',
-        dueDate: '2024-07-15',
-        materials: [{ type: 'PDF', link: '/path/to/build-a-website.pdf' }],
-      },
-      {
-        id: 'p2',
-        title: 'React Project',
-        description: 'Develop a project using React.',
-        content: 'Detailed content of React Project',
-        date: '2024-06-19',
-        dueDate: '2024-07-20',
-        materials: [{ type: 'PDF', link: '/path/to/react-project.pdf' }],
-      },
-    ],
-  },
+const formatDate = (isoDate: string): string => {
+  // Extract the date part before 'T'
+  const datePart = isoDate.split('T')[0];
+  return datePart;
 };
 
 const PostPage = ({ params }: { params: { classId: string, postId: string } }) => {
@@ -110,22 +34,46 @@ const PostPage = ({ params }: { params: { classId: string, postId: string } }) =
   const { classId, postId } = params;
 
   useEffect(() => {
-    const classInfo = classData[classId as keyof typeof classData];
-    if (classInfo) {
-      const postInfo = classInfo.posts.find(post => post.id === postId);
-      if (postInfo) {
-        setPost(postInfo);
-        setClassName(classInfo.title);
-      } else {
+    const fetchPostData = async () => {
+      try {
+        const response = await fetch(`http://localhost:5000/api/classes/${classId}/posts/${postId}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            // Add any authentication headers if required
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch post data');
+        }
+
+        const postData = await response.json();
+
+        // Format dates in the fetched post data
+        const formattedPost: Post = {
+          ...postData,
+          date: formatDate(postData.date),
+          dueDate: formatDate(postData.dueDate),
+        };
+
+        setPost(formattedPost);
+        setClassName(postData.className); // Assuming you also fetch class name from backend
+      } catch (error) {
+        console.error('Error fetching post data:', error);
         router.push(`/classes/${classId}`);
       }
+    };
+
+    if (classId && postId) {
+      fetchPostData();
     } else {
-      router.push('/enrolled-classes');
+      console.warn('classId or postId is undefined');
     }
   }, [classId, postId, router]);
 
   if (!post) {
-    return null;
+    return <div>Loading...</div>; // You can render a loading indicator or handle the absence of post data as needed
   }
 
   const handleMenuItemClick = (itemId: string) => {};
@@ -138,6 +86,8 @@ const PostPage = ({ params }: { params: { classId: string, postId: string } }) =
         return '/icons/pdf.svg';
       case 'word':
         return '/icons/word.svg';
+      default:
+        return '/icons/default.svg';
     }
   };
 

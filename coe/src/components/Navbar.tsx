@@ -16,7 +16,7 @@ const Navbar = () => {
           </Link>
           <ul className="flex items-center ml-10 space-x-6">
             <li className="text-xl text-white py-2 hover:bg-purple-900 md:hover:text-purple-600 md:hover:bg-transparent">
-              <Link href="#about">Problems</Link>
+              <Link href="/problems">Problems</Link>
             </li>
             <li className="text-xl text-white py-2 hover:bg-purple-600 md:hover:text-purple-600 md:hover:bg-transparent">
               <Link href="#blog">To-Do</Link>
@@ -44,7 +44,12 @@ const Navbar = () => {
             </div>
           </form>
         </div>
-        <div className="relative">
+        <div className="relative" style={{display:"flex"}}>
+          
+        <Link href="/class/join">
+        <span className="text-xl text-white py-2 hover:bg-purple-600 md:hover:text-purple-600 md:hover:bg-transparent cursor-pointer">+</span></Link>
+
+
           <button onClick={() => setDropdownOpen(!dropdownOpen)} className="flex items-center text-white focus:outline-none">
             <FaRegUserCircle className="mr-1" />
             <span className="mr-1">User</span>

@@ -1,5 +1,5 @@
-// src/app/classes/[classId]/posts/[postId]/YourWorkBox.tsx
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface YourWorkBoxProps {
   isDueDatePassed: boolean;
@@ -7,6 +7,7 @@ interface YourWorkBoxProps {
 
 const YourWorkBox: React.FC<YourWorkBoxProps> = ({ isDueDatePassed }) => {
   const [file, setFile] = useState<File | null>(null);
+  const router = useRouter();
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
@@ -19,6 +20,10 @@ const YourWorkBox: React.FC<YourWorkBoxProps> = ({ isDueDatePassed }) => {
       // Handle file submission logic here
       alert(`Submitting file: ${file.name}`);
     }
+  };
+
+  const handleOpenInEditor = () => {
+    router.push('/problems'); // Navigate to the problems page
   };
 
   return (
@@ -35,6 +40,12 @@ const YourWorkBox: React.FC<YourWorkBoxProps> = ({ isDueDatePassed }) => {
         className="bg-blue-500 text-white rounded-lg px-4 py-2 mb-4 w-full"
       >
         Submit
+      </button>
+      <button
+        onClick={handleOpenInEditor}
+        className="bg-green-500 text-white rounded-lg px-4 py-2 mb-4 w-full"
+      >
+        Open in Editor
       </button>
     </div>
   );
