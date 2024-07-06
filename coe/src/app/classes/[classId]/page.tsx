@@ -46,11 +46,11 @@ const ClassPage = ({ params }: { params: { classId: string } }) => {
         }));
         setClassData({ ...data, posts: formattedPosts });
       } else {
-        router.push('/enrolled-classes');
+        router.push('/enrolled');
       }
     } catch (error) {
       console.error('Error fetching class data:', error);
-      router.push('/enrolled-classes');
+      router.push('/enrolled');
     }
   };
 
