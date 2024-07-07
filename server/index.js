@@ -1,6 +1,9 @@
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
+const bodyParser = require('body-parser');
+const authRoutes = require('./Routes/auth');
+
 const app = express();
 const path = require('path');
 require("dotenv").config();
@@ -31,6 +34,8 @@ mongoose
   .catch((err) => {
     console.log("DB Connection Error:", err.message);
   });
+
+  app.use('/api/auth', authRoutes);
 
 // Server setup
 const server = app.listen(PORT, () => {
