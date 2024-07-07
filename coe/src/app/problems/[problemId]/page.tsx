@@ -1,6 +1,6 @@
 'use client';
 
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Navbar from '@/components/Navbar';
 import dynamic from 'next/dynamic';
@@ -29,7 +29,12 @@ const problemsData: Record<string, Problem> = {
 
 const ProblemPage = () => {
   const params = useParams();
+  const searchParams = useSearchParams();
   const problemId = params.problemId;
+
+  const classId = searchParams.get('classId');
+  const postId = searchParams.get('postId');
+
   const [problem, setProblem] = useState<Problem | null>(null);
 
   useEffect(() => {
@@ -64,7 +69,7 @@ const ProblemPage = () => {
           </ul>
         </div>
         <div className="w-1/2 min-h-full bg-gray-900 text-gray-500 px-6 py-8">
-          <CodeEditor />
+          <CodeEditor classId={classId} postId={postId} />
         </div>
       </div>
     </div>

@@ -10,6 +10,7 @@ require("dotenv").config();
 const classesRouter = require('./Routes/classes');
 const postsRouter = require('./Routes/posts');
 const materialsRouter = require('./Routes/materials');
+const postSubmissionsRouter = require('./Routes/postsubmissions');
 app.use(cors());
 app.use(express.json());
 
@@ -18,6 +19,7 @@ app.use(express.json());
 app.use('/api/classes', classesRouter);
 app.use('/api/classes', postsRouter);  // 
 app.use('/api/classes', materialsRouter); 
+app.use('/api/postSubmissions', postSubmissionsRouter);
 
 // MongoDB connection
 const DB = process.env.MONGO_URL || "mongodb+srv://jatin321gupta:a2WBTz8qRHJcKPeQ@cluster0.win3l5k.mongodb.net/ClassForge?retryWrites=true&w=majority&appName=Cluster0";

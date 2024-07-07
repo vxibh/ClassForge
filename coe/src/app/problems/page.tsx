@@ -1,11 +1,10 @@
-// src/app/problems/problems.tsx
 'use client';
 
 import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import AnnouncementBar from '@/components/AnnouncementBar';
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 const problemsList = [
   { id: 'problem1', title: 'Two Sum' },
@@ -17,6 +16,10 @@ const problemsList = [
 const ProblemsPage = () => {
   const [activeItem, setActiveItem] = useState<string>('problems');
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const classId = searchParams.get('classId');
+  const postId = searchParams.get('postId');
 
   const handleMenuItemClick = (itemId: string) => {
     setActiveItem(itemId);
@@ -27,7 +30,7 @@ const ProblemsPage = () => {
   }, []);
 
   const handleProblemClick = (problemId: string) => {
-    router.push(`/problems/${problemId}`);
+    router.push(`/problems/${problemId}?classId=${classId}&postId=${postId}`);
   };
 
   return (
