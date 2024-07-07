@@ -8,11 +8,11 @@ const Navbar = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   return (
-    <nav className="w-full h-14 bg-black fixed top-0 left-0 right-0 z-10">
+    <nav className="w-full h-14 bg-gray-700 fixed top-0 left-0 right-0 z-10">
       <div className="flex justify-between px-4 mx-auto lg:max-w-7xl md:items-center md:flex md:px-8">
         <div className="flex items-center" style={{ marginTop: '4px' }}>
           <Link href="/">
-            <h2 className="text-2xl text-cyan-600 font-bold cursor-pointer">LOGO</h2>
+            <h2 className="text-2xl text-red-600 font-bold cursor-pointer">ClassForge</h2>
           </Link>
           <ul className="flex items-center ml-10 space-x-6">
             <li className="text-xl text-white py-2 hover:bg-purple-900 md:hover:text-purple-600 md:hover:bg-transparent">
@@ -47,16 +47,16 @@ const Navbar = () => {
         <div className="relative" style={{display:"flex"}}>
           
         <Link href="/class/join">
-        <span className="text-xl text-white py-2 hover:bg-purple-600 md:hover:text-purple-600 md:hover:bg-transparent cursor-pointer">+</span></Link>
+        <span className="text-2xl text-white p-5 hover:bg-purple-600 md:hover:text-purple-600 md:hover:bg-transparent cursor-pointer">+</span></Link>
 
 
           <button onClick={() => setDropdownOpen(!dropdownOpen)} className="flex items-center text-white focus:outline-none">
-            <FaRegUserCircle className="mr-1" />
-            <span className="mr-1">User</span>
+            <FaRegUserCircle className="mt-1 mr-1" />
+            <span className="mt-1">User</span>
             <FaCaretDown />
           </button>
           {dropdownOpen && (
-            <div className="absolute right-0 mt-2 w-20 bg-white rounded-md shadow-lg py-1 z-20">
+            <div className="absolute right-0 mt-2 mr-1 w-20 bg-white rounded-md shadow-lg py-1 z-20">
               <LogoutButton />
             </div>
           )}

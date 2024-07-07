@@ -37,6 +37,37 @@ mongoose
 
   app.use('/api/auth', authRoutes);
 
+  const authMiddleware = async (req, res, next) => {
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+  
+    if (!token) {
+      return res.status(401).json({ message: 'No token, authorization denied' });
+    }
+  
+    try {
+      const decoded = jwt.verify(token, 'your_jwt_secret'); // Replace 'your_jwt_secret' with your actual JWT secret
+      req.user = decoded;
+  
+      // Optionally, fetch the user details from the database if needed
+      const user = await User.findById(req.user.id).select('-password');
+      if (!user) {
+        return res.status(401).json({ message: 'User not found, authorization denied' });
+      }
+  
+      req.user = user; // Attach user info to the request object
+      next();
+    } catch (error) {
+      res.status(401).json({ message: 'Token is not valid' });
+    }
+  };
+  
+  // Example protected route
+  app.get('/api/auth/me', authMiddleware, (req, res) => {
+    res.json({ user: req.user, logins: [] }); // Replace with actual logins if needed
+  });
+  
+
+
 // Server setup
 const server = app.listen(PORT, () => {
   console.log(`Server started on ${PORT}`);

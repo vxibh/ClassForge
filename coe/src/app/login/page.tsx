@@ -24,20 +24,13 @@ const Login = () => {
     e.preventDefault();
     try {
       const res = await axios.post('http://localhost:5000/api/auth/login', formData);
-      console.log(res.data);
-
-      // Assuming the response contains a token and user info
-      if (res.data.token) {
-        // You can store the token in local storage or a cookie
-        localStorage.setItem('token', res.data.token);
-        
-        // Redirect to the dashboard
-        router.push('/dashboard');
-      }
+      localStorage.setItem('token', res.data.token); // Save token to localStorage
+      router.push('/dashboard'); // Redirect to dashboard
     } catch (error) {
       console.error(error.response.data);
     }
   };
+  
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">

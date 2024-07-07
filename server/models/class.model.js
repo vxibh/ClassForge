@@ -9,8 +9,8 @@ const MaterialSchema = new Schema({
 const PostSchema = new Schema({
   title: { type: String, required: true },
   description: { type: String, required: true },
-  content: { type: String, required: true },
-  date: { type: Date, required: true },
+  content: { type: String},
+  date: { type: Date },
   dueDate: { type: Date },
   materials: [MaterialSchema],
 });

@@ -6,7 +6,7 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ onItemClick }) => {
-  const [activeItem, setActiveItem] = useState<string>('dashboard');
+  const [activeItem, setActiveItem] = useState<string>('');
   const [enrolledDropdownOpen, setEnrolledDropdownOpen] = useState<boolean>(false);
   const router = useRouter();
   const menuItems = [
@@ -37,7 +37,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onItemClick }) => {
         router.push('/problems');
         break;
       case 'dashboard':
-        router.push('/student-dashboard');
+        router.push('/dashboard');
         break;
       case 'enrolled':
         router.push('/enrolled');

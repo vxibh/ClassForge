@@ -1,15 +1,17 @@
+'use client';
+
 import { useRouter } from 'next/navigation';
-import { useClerk } from '@clerk/nextjs';
 import Button from './Button';
 
 export default function LogoutButton() {
-  const { signOut } = useClerk();
   const router = useRouter();
 
   const handleLogout = async () => {
     try {
-      await signOut();
-      router.push('/'); // Redirect to home after logout
+      // Remove the token from local storage
+      localStorage.removeItem('token');
+      // Redirect to home after logout
+      router.push('/');
     } catch (error) {
       console.error('Logout failed:', error);
     }
