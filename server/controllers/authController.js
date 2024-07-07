@@ -3,35 +3,36 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 const registerUser = async (req, res) => {
-  const { email, username, name, password, confirmPassword, batch, isTeacher } = req.body;
-
-  if (password !== confirmPassword) {
-    return res.status(400).json({ message: 'Passwords do not match' });
-  }
-
-  try {
-    const userExists = await User.findOne({ $or: [{ email }, { username }] });
-
-    if (userExists) {
-      return res.status(400).json({ message: 'User already exists' });
+    const { email, username, name, password, confirmPassword, batch, isTeacher } = req.body;
+  
+    if (password !== confirmPassword) {
+      return res.status(400).json({ message: 'Passwords do not match' });
     }
-
-    const user = new User({
-      email,
-      username,
-      name,
-      password,
-      batch: isTeacher ? undefined : batch,
-      isTeacher
-    });
-
-    await user.save();
-
-    res.status(201).json({ message: 'User registered successfully' });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
+  
+    try {
+      const userExists = await User.findOne({ $or: [{ email }, { username }] });
+  
+      if (userExists) {
+        return res.status(400).json({ message: 'User already exists' });
+      }
+  
+      const user = new User({
+        email,
+        username,
+        name,
+        password,
+        batch: isTeacher ? undefined : batch,
+        isTeacher,
+        token: undefined // Ensure token is not set to null
+      });
+  
+      await user.save();
+  
+      res.status(201).json({ message: 'User registered successfully' });
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  };  
 
 const loginUser = async (req, res) => {
   const { usernameOrEmail, password } = req.body;

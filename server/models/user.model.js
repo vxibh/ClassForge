@@ -29,6 +29,11 @@ const userSchema = new mongoose.Schema({
   isTeacher: {
     type: Boolean,
     default: false
+  },
+  token: {
+    type: String,
+    unique: true,
+    sparse: true
   }
 });
 
