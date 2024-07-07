@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Cookies from 'universal-cookie';
 import { useRouter } from 'next/navigation';
-import HomeNavbar from './Navbar';
 
 const JoinClass = () => {
   const [inputCode, setInputCode] = useState('');
@@ -9,7 +8,6 @@ const JoinClass = () => {
   const [inputDescription, setInputDescription] = useState('');
   const [createError, setCreateError] = useState('');
   const [joinError, setJoinError] = useState('');
-  const [classCode, setClassCode] = useState('');
   const router = useRouter();
   const token = new Cookies().get('token');
 
@@ -35,20 +33,20 @@ const JoinClass = () => {
     e.preventDefault();
     try {
       if (createError === '') {
-        const response = await fetch('http://localhost:5000/classes/create', {
+        const response = await fetch('http://localhost:5000/api/classes/create', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
           },
-          body: JSON.stringify({ title: inputTitle, description: inputDescription, owner: token })
+          body: JSON.stringify({ title: inputTitle, description: inputDescription })
         });
 
         if (response.status === 201) {
           const data = await response.json();
           setInputTitle('');
           setInputDescription('');
-          setClassCode(data.code);
+          router.push(`/classes/${data.classId}`);
         } else {
           const errorData = await response.json();
           setCreateError(errorData.message);
@@ -64,7 +62,7 @@ const JoinClass = () => {
     e.preventDefault();
     try {
       if (joinError === '') {
-        const response = await fetch('http://localhost:5000/classes/join', {
+        const response = await fetch('http://localhost:5000/api/classes/join', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -76,7 +74,7 @@ const JoinClass = () => {
         if (response.status === 200) {
           const data = await response.json();
           setInputCode('');
-          router.push(`/class/${data.classId}`);
+          router.push(`/classes/${data.classId}`);
         } else {
           const errorData = await response.json();
           setJoinError(errorData.message);
@@ -90,7 +88,6 @@ const JoinClass = () => {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <HomeNavbar />
       <div className="container mx-auto p-4">
         <div className="bg-white shadow-lg rounded-lg p-6">
           <div className="flex justify-center mb-4">
@@ -124,12 +121,6 @@ const JoinClass = () => {
                 <input type="submit" className="form-control btn btn-dark block w-full px-4 py-2 bg-gray-800 text-white hover:bg-gray-900 rounded cursor-pointer" value="Create Class" />
               </div>
             </form>
-            {classCode && (
-              <div className="mt-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
-                <p className="font-bold">Class created successfully!</p>
-                <p>Class Code: {classCode}</p>
-              </div>
-            )}
           </div>
         </div>
       </div>

@@ -1,6 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const Class = require('../models/class.model');
+const crypto = require('crypto');
+const Class = require('../models/class.model'); // Ensure this path is correct
+
+// Function to generate a unique code
+const generateCode = () => {
+  return crypto.randomBytes(4).toString('hex'); // Generates an 8-character hex string
+};
 
 // Get all classes
 router.get('/', async (req, res) => {
@@ -18,43 +24,34 @@ router.get('/:classId', getClass, (req, res) => {
 });
 
 // Create a new class
-router.post('/', async (req, res) => {
+router.post('/create', async (req, res) => {
   const classData = new Class({
     title: req.body.title,
     description: req.body.description,
-    posts: []
+    posts: [],
+    code: generateCode() // Generate a unique code
   });
 
   try {
     const newClass = await classData.save();
-    res.status(201).json(newClass);
+    res.status(201).json({ message: 'Class created successfully', classId: newClass._id, code: newClass.code });
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
 });
 
-// Update a specific class by ID
-router.put('/:classId', getClass, async (req, res) => {
-  if (req.body.title != null) {
-    res.class.title = req.body.title;
-  }
-  if (req.body.description != null) {
-    res.class.description = req.body.description;
-  }
-
+// Join a class by code
+router.post('/join', async (req, res) => {
   try {
-    const updatedClass = await res.class.save();
-    res.json(updatedClass);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
-  }
-});
+    const classData = await Class.findOne({ code: req.body.code });
+    if (!classData) {
+      return res.status(404).json({ message: 'Class not found' });
+    }
 
-// Delete a specific class by ID
-router.delete('/:classId', getClass, async (req, res) => {
-  try {
-    await res.class.remove();
-    res.json({ message: 'Deleted Class' });
+    // Add user to class (this part depends on your User model and logic)
+    // For now, just returning the class data
+
+    res.status(200).json({ message: 'Joined class successfully', classId: classData._id });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
