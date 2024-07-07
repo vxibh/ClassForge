@@ -18,6 +18,7 @@ interface ClassData {
   title: string;
   description: string;
   posts: Post[];
+  code: string; // Add code property to ClassData interface
 }
 
 const formatDate = (isoDate: string): string => {
@@ -77,7 +78,11 @@ const ClassPage = ({ params }: { params: { classId: string } }) => {
       <div className="flex flex-1" style={{ marginTop: "56px" }}>
         <Sidebar onItemClick={handleMenuItemClick} />
         <div className="flex-1 p-4 bg-gray-100 overflow-y-auto">
-          <ClassInfoCard title={classData.title} description={classData.description} />
+          <ClassInfoCard
+            title={classData.title}
+            description={classData.description}
+            code={classData.code} // Pass the class code to ClassInfoCard
+          />
           {activeItem === 'posts' && <PostList posts={classData.posts} onPostClick={handlePostClick} />}
           {/* Add more conditional rendering based on `activeItem` if needed */}
         </div>

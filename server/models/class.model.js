@@ -19,6 +19,7 @@ const ClassSchema = new Schema({
   title: { type: String, required: true },
   description: { type: String, required: true },
   posts: [PostSchema],
+  code: { type: String, required: true, unique: true } // Add code field
 });
 
 module.exports = mongoose.model('Class', ClassSchema);
