@@ -1,6 +1,8 @@
 'use client';
 import { useState } from 'react';
 import axios from 'axios';
+import { useRouter } from 'next/router';
+import router from 'next/router';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -26,6 +28,7 @@ const Register = () => {
     try {
       const res = await axios.post('http://localhost:5000/api/auth/register', formData);
       console.log(res.data);
+      router.push('/dashboard');
     } catch (error) {
       console.error(error.response.data);
     }

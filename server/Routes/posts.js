@@ -63,15 +63,29 @@ router.put('/:classId/posts/:postId', getClass, getPost, async (req, res) => {
 });
 
 // Delete a specific post by ID
-router.delete('/:classId/posts/:postId', getClass, getPost, async (req, res) => {
+// Delete a specific post by ID
+router.delete('/:classId/posts/:postId', async (req, res) => {
   try {
-    res.post.remove();
-    await res.class.save();
+    const classData = await Class.findById(req.params.classId);
+    if (!classData) {
+      return res.status(404).json({ message: 'Cannot find class' });
+    }
+
+    const post = classData.posts.id(req.params.postId);
+    if (!post) {
+      return res.status(404).json({ message: 'Cannot find post' });
+    }
+
+    post.remove();
+    await classData.save();
+
     res.json({ message: 'Deleted Post' });
   } catch (err) {
+    console.error('Error deleting post:', err);
     res.status(500).json({ message: err.message });
   }
 });
+
 
 // Middleware to get a class by ID
 async function getClass(req, res, next) {
