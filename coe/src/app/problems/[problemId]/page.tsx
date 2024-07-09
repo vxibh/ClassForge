@@ -1,9 +1,10 @@
 // pages/problems/[problemId].tsx
-'use client'
+'use client';
 import { useEffect, useState } from 'react';
 import Navbar from '@/components/Navbar';
 import dynamic from 'next/dynamic';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter } from 'next/router';
+import { useParams } from 'next/navigation';
 
 const CodeEditor = dynamic(() => import('@/components/CodeEditor'), { ssr: false });
 
@@ -14,7 +15,7 @@ interface Problem {
 }
 
 const ProblemPage = () => {
-  const  problemId  = useParams<{ problemId: string }>();
+  const { problemId } = useParams<{ problemId: string }>();
   const [problem, setProblem] = useState<Problem | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -25,35 +26,19 @@ const ProblemPage = () => {
 
       setLoading(true);
       try {
-        const response = await fetch('https://leetcode.com/graphql/', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            query: `
-              query problemDetail($titleSlug: String!) {
-                question(titleSlug: $titleSlug) {
-                  title
-                  content
-                  topicTags {
-                    name
-                  }
-                }
-              }
-            `,
-            variables: {
-              titleSlug: problemId,
-            },
-          }),
-        });
+        const response = await fetch(`/api/problems/${problemId}`);
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
 
         const data = await response.json();
-        setProblem(data.data.question);
+
+        if (!data || !data.question) {
+          throw new Error('Problem not found');
+        }
+
+        setProblem(data.question);
         setLoading(false);
       } catch (error) {
         setError(error.message);
