@@ -1,5 +1,5 @@
-'use client';
-
+// PostPage.jsx
+"use client";
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Navbar from '@/components/Navbar';
@@ -22,7 +22,6 @@ interface Post {
 }
 
 const formatDate = (isoDate: string): string => {
-  // Extract the date part before 'T'
   const datePart = isoDate.split('T')[0];
   return datePart;
 };
@@ -30,6 +29,7 @@ const formatDate = (isoDate: string): string => {
 const PostPage = ({ params }: { params: { classId: string, postId: string } }) => {
   const [post, setPost] = useState<Post | null>(null);
   const [className, setClassName] = useState<string>('');
+  const [submissionStatus, setSubmissionStatus] = useState<string>('Assigned');
   const router = useRouter();
   const { classId, postId } = params;
 
@@ -40,7 +40,6 @@ const PostPage = ({ params }: { params: { classId: string, postId: string } }) =
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            // Add any authentication headers if required
           },
         });
 
@@ -50,7 +49,6 @@ const PostPage = ({ params }: { params: { classId: string, postId: string } }) =
 
         const postData = await response.json();
 
-        // Format dates in the fetched post data
         const formattedPost: Post = {
           ...postData,
           date: formatDate(postData.date),
@@ -58,7 +56,7 @@ const PostPage = ({ params }: { params: { classId: string, postId: string } }) =
         };
 
         setPost(formattedPost);
-        setClassName(postData.className); // Assuming you also fetch class name from backend
+        setClassName(postData.className);
       } catch (error) {
         console.error('Error fetching post data:', error);
         router.push(`/classes/${classId}`);
@@ -73,7 +71,7 @@ const PostPage = ({ params }: { params: { classId: string, postId: string } }) =
   }, [classId, postId, router]);
 
   if (!post) {
-    return <div>Loading...</div>; // You can render a loading indicator or handle the absence of post data as needed
+    return <div>Loading...</div>;
   }
 
   const handleMenuItemClick = (itemId: string) => {};
@@ -119,7 +117,7 @@ const PostPage = ({ params }: { params: { classId: string, postId: string } }) =
               </div>
             </div>
           </div>
-          <YourWorkBox isDueDatePassed={isDueDatePassed} />
+          <YourWorkBox isDueDatePassed={isDueDatePassed} submissionStatus={submissionStatus} setSubmissionStatus={setSubmissionStatus} classId={classId} postId={postId} />
         </div>
       </div>
     </div>

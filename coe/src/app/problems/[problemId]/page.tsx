@@ -1,4 +1,3 @@
-// pages/problems/[problemId].tsx
 'use client';
 import { useEffect, useState } from 'react';
 import Navbar from '@/components/Navbar';
@@ -29,7 +28,7 @@ const ProblemPage = () => {
         const response = await fetch(`/api/problems/${problemId}`);
 
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          throw new Error('HTTP error! status: ${response.status}');
         }
 
         const data = await response.json();

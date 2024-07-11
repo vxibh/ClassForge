@@ -76,7 +76,7 @@ router.delete('/:classId/posts/:postId', async (req, res) => {
       return res.status(404).json({ message: 'Cannot find post' });
     }
 
-    post.remove();
+    classData.posts.pull(req.params.postId);
     await classData.save();
 
     res.json({ message: 'Deleted Post' });

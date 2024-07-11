@@ -16,5 +16,5 @@ export const CODE_SNIPPETS = {
   java: `\npublic class HelloWorld {\n\tpublic static void main(String[] args) {\n\t\tSystem.out.println("Hello World");\n\t}\n}\n`,
   csharp: 'using System;\n\nnamespace HelloWorld\n{\n\tclass Hello { \n\t\tstatic void Main(string[] args) {\n\t\t\tConsole.WriteLine("Hello World in C#");\n\t\t}\n\t}\n}\n',
   php: "<?php\n\n$name = 'Alex';\necho $name;\n",
-  cpp: `\n#include <iostream>\n\nint main() {\n\tstd::cout << "Hello, Alex!" << std::endl;\n\treturn 0;\n}\n`,
+  cpp: `\n#include <iostream>\n\nusing namespace std; \n\n int main() {\n\tstd::cout << "Hello, Alex!" << std::endl;\n\treturn 0;\n}\n`,
 };

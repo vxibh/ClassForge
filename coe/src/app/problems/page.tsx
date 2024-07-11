@@ -1,4 +1,3 @@
-// pages/problems.tsx
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -28,7 +27,7 @@ const ProblemsPage = () => {
       try {
         const response = await fetch('/api/problems');
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          throw new Error('HTTP error! status: ${response.status}');
         }
         const data = await response.json();
         setProblems(data);

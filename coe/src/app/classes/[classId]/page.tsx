@@ -23,6 +23,10 @@ interface ClassData {
   code: string;
 }
 
+interface User {
+  isTeacher: boolean;
+}
+
 const formatDate = (isoDate: string): string => {
   const datePart = isoDate.split('T')[0];
   return datePart;
@@ -32,13 +36,19 @@ const ClassPage = ({ params }: { params: { classId: string } }) => {
   const [activeItem, setActiveItem] = useState<string>('posts');
   const [classData, setClassData] = useState<ClassData | null>(null);
   const [showPostForm, setShowPostForm] = useState(false);
+  const [isTeacher, setIsTeacher] = useState<boolean>(false);
   const router = useRouter();
   const { classId } = params;
 
   const fetchClassData = async () => {
     try {
+      const token = localStorage.getItem('token');
       const response = await fetch(`http://localhost:5000/api/classes/${classId}`, {
         method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
       });
       const data = await response.json();
       if (data) {
@@ -56,8 +66,26 @@ const ClassPage = ({ params }: { params: { classId: string } }) => {
     }
   };
 
+  const fetchUserData = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:5000/api/users/me`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+      });
+      const data: User = await response.json();
+      setIsTeacher(data.isTeacher);
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+    }
+  };
+
   useEffect(() => {
     fetchClassData();
+    fetchUserData();
   }, [classId, router]);
 
   const handleMenuItemClick = (itemId: string) => {
@@ -74,7 +102,6 @@ const ClassPage = ({ params }: { params: { classId: string } }) => {
         method: 'DELETE',
       });
       if (response.ok) {
-        // Update state immutably
         setClassData(prevData => ({
           ...prevData,
           posts: prevData.posts.filter(post => post._id !== postId),
@@ -119,7 +146,7 @@ const ClassPage = ({ params }: { params: { classId: string } }) => {
       if (response.ok) {
         setNewPost({ title: '', description: '', content: '', date: '', dueDate: '', materials: [] });
         setShowPostForm(false);
-        fetchClassData();  // Re-fetch the class data to ensure the new post is displayed correctly
+        fetchClassData();
       } else {
         const errorData = await response.json();
         console.error('Error creating post:', errorData);
@@ -146,12 +173,11 @@ const ClassPage = ({ params }: { params: { classId: string } }) => {
           />
           {activeItem === 'posts' && (
             <>
-              <button
-                onClick={() => setShowPostForm(!showPostForm)}
-                className="bg-blue-500 text-white px-4 py-2 rounded mb-4"
-              >
+              {isTeacher && (
+                <button onClick={() => setShowPostForm(!showPostForm)}className="bg-blue-500 text-white px-4 py-2 rounded mb-4">
                 {showPostForm ? 'Cancel' : 'Add Post'}
-              </button>
+                </button>
+              )}
               {showPostForm && (
                 <form onSubmit={handlePostSubmit} className="mb-4">
                   <div className="mb-2">
@@ -223,7 +249,8 @@ const ClassPage = ({ params }: { params: { classId: string } }) => {
                   </button>
                 </form>
               )}
-              <PostList posts={classData.posts} onPostClick={handlePostClick} onDeleteClick={handlePostDelete} />
+              <PostList posts={classData.posts} onPostClick={handlePostClick} onDelete={handlePostDelete} isTeacher={isTeacher} />
+
             </>
           )}
         </div>
