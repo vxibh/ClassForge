@@ -9,7 +9,8 @@ const JoinClass = () => {
   const [createError, setCreateError] = useState('');
   const [joinError, setJoinError] = useState('');
   const router = useRouter();
-  const token = new Cookies().get('token');
+  const token = localStorage.getItem('token');
+  console.log(token)
 
   useEffect(() => {
     if (inputTitle.length > 100) setCreateError('Title length must be less or equal to 100');

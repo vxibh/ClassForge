@@ -42,6 +42,9 @@ const Sidebar: React.FC<SidebarProps> = ({ onItemClick }) => {
       case 'enrolled':
         router.push('/enrolled');
         break;  
+      case 'to-do':
+        router.push('/to-do');
+        break;   
       // Add more cases as needed
       default:
         break;
@@ -65,26 +68,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onItemClick }) => {
             {item.name}
           </li>
         ))}
-        <li
-          className="py-2 px-4 my-1 rounded cursor-pointer hover:bg-gray-700"
-          onClick={toggleEnrolledDropdown}
-        >
-          Enrolled {enrolledDropdownOpen ? '▲' : '▼'}
-        </li>
-        {enrolledDropdownOpen && (
-          <ul className="pl-4">
-            {enrolledClasses.map(classItem => (
-              <li
-                key={classItem.id}
-                className={`py-2 px-4 my-1 rounded cursor-pointer ${classItem.id === activeItem ? 'bg-green-500 font-bold' : 'hover:bg-gray-700'}`}
-                onClick={() => handleItemClick(classItem.id)}
-              >
-                
-                {classItem.name}
-              </li>
-            ))}
-          </ul>
-        )}
+        
       </ul>
     </div>
   );

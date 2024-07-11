@@ -34,7 +34,15 @@ const userSchema = new mongoose.Schema({
     type: String,
     unique: true,
     sparse: true
-  }
+  },
+  enrolledClasses: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Class'
+  }],
+  postSubmissions: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'PostSubmission'
+  }]
 });
 
 userSchema.pre('save', async function(next) {

@@ -1,52 +1,63 @@
 'use client';
-
-import { useParams, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Navbar from '@/components/Navbar';
 import dynamic from 'next/dynamic';
+import { useRouter } from 'next/router';
+import { useParams } from 'next/navigation';
 
 const CodeEditor = dynamic(() => import('@/components/CodeEditor'), { ssr: false });
 
 interface Problem {
   title: string;
-  description: string;
-  constraints: string;
-  examples: { input: string; output: string }[];
+  content: string;
+  topicTags: { name: string }[];
 }
 
-const problemsData: Record<string, Problem> = {
-  'problem1': {
-    title: 'Two Sum',
-    description: 'Given an array of integers, return indices of the two numbers such that they add up to a specific target.',
-    constraints: '1 <= nums.length <= 10^4\n-10^9 <= nums[i] <= 10^9\n-10^9 <= target <= 10^9',
-    examples: [
-      { input: 'nums = [2,7,11,15], target = 9', output: 'Output: [0,1]' },
-      { input: 'nums = [3,2,4], target = 6', output: 'Output: [1,2]' },
-    ],
-  },
-  // Add more problems as needed
-};
-
 const ProblemPage = () => {
-  const params = useParams();
-  const searchParams = useSearchParams();
-  const problemId = params.problemId;
-
-  const classId = searchParams.get('classId');
-  const postId = searchParams.get('postId');
-
+  const { problemId } = useParams<{ problemId: string }>();
   const [problem, setProblem] = useState<Problem | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (problemId && typeof problemId === 'string' && problemId in problemsData) {
-      setProblem(problemsData[problemId]);
-    } else {
-      setProblem(null);
-    }
+    const fetchProblemDetails = async () => {
+      if (!problemId) return;
+
+      setLoading(true);
+      try {
+        const response = await fetch(`/api/problems/${problemId}`);
+
+        if (!response.ok) {
+          throw new Error('HTTP error! status: ${response.status}');
+        }
+
+        const data = await response.json();
+
+        if (!data || !data.question) {
+          throw new Error('Problem not found');
+        }
+
+        setProblem(data.question);
+        setLoading(false);
+      } catch (error) {
+        setError(error.message);
+        setLoading(false);
+      }
+    };
+
+    fetchProblemDetails();
   }, [problemId]);
 
-  if (!problem) {
+  if (loading) {
     return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+
+  if (!problem) {
+    return <div>Problem not found</div>;
   }
 
   return (
@@ -55,21 +66,11 @@ const ProblemPage = () => {
       <div className="flex flex-1 p-4 bg-gray-100 overflow-y-auto mt-14">
         <div className="w-1/2 pr-4">
           <h1 className="text-2xl font-bold mb-4">{problem.title}</h1>
-          <p className="mb-4">{problem.description}</p>
-          <h2 className="text-xl font-semibold mb-2">Constraints:</h2>
-          <pre className="mb-4">{problem.constraints}</pre>
-          <h2 className="text-xl font-semibold mb-2">Examples:</h2>
-          <ul>
-            {problem.examples.map((example, index) => (
-              <li key={index} className="mb-2">
-                <pre><strong>Input:</strong> {example.input}</pre>
-                <pre><strong>Output:</strong> {example.output}</pre>
-              </li>
-            ))}
-          </ul>
+          <p className="mb-4" dangerouslySetInnerHTML={{ __html: problem.content }} />
+          <p className="mb-4">Tags: {problem.topicTags.map(tag => tag.name).join(', ')}</p>
         </div>
         <div className="w-1/2 min-h-full bg-gray-900 text-gray-500 px-6 py-8">
-          <CodeEditor classId={classId} postId={postId} />
+          <CodeEditor />
         </div>
       </div>
     </div>

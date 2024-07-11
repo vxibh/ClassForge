@@ -24,12 +24,15 @@ const Login = () => {
     e.preventDefault();
     try {
       const res = await axios.post('http://localhost:5000/api/auth/login', formData);
-      localStorage.setItem('token', res.data.token); // Save token to localStorage
+      const token = res.data.token; // Get token from response data
+      localStorage.setItem('token', token); // Save token to localStorage
+      console.log(token);
       router.push('/dashboard'); // Redirect to dashboard
     } catch (error) {
       console.error(error.response.data);
     }
   };
+  
   
 
   return (

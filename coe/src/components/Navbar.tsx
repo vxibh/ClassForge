@@ -19,7 +19,7 @@ const Navbar = () => {
               <Link href="/problems">Problems</Link>
             </li>
             <li className="text-xl text-white py-2 hover:bg-purple-600 md:hover:text-purple-600 md:hover:bg-transparent">
-              <Link href="#blog">To-Do</Link>
+              <Link href="/to-do">To-Do</Link>
             </li>
             <li className="text-xl text-white py-2 hover:bg-purple-600 md:hover:text-purple-600 md:hover:bg-transparent">
               <Link href="#contact">Submissions</Link>

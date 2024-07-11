@@ -10,18 +10,24 @@ interface Post {
   _id: string;
   title: string;
   description: string;
-  date: string; // Assuming the date is in ISO format '2024-06-20T00:00:00.000Z'
+  date: string;
+  content: string;
+  dueDate: string;
+  materials: string[];
 }
 
 interface ClassData {
   title: string;
   description: string;
   posts: Post[];
-  code: string; // Add code property to ClassData interface
+  code: string;
+}
+
+interface User {
+  isTeacher: boolean;
 }
 
 const formatDate = (isoDate: string): string => {
-  // Extract the date part before 'T'
   const datePart = isoDate.split('T')[0];
   return datePart;
 };
@@ -30,17 +36,22 @@ const ClassPage = ({ params }: { params: { classId: string } }) => {
   const [activeItem, setActiveItem] = useState<string>('posts');
   const [classData, setClassData] = useState<ClassData | null>(null);
   const [showPostForm, setShowPostForm] = useState(false);
+  const [isTeacher, setIsTeacher] = useState<boolean>(false);
   const router = useRouter();
   const { classId } = params;
 
   const fetchClassData = async () => {
     try {
+      const token = localStorage.getItem('token');
       const response = await fetch(`http://localhost:5000/api/classes/${classId}`, {
         method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
       });
       const data = await response.json();
       if (data) {
-        // Format dates in posts
         const formattedPosts = data.posts.map((post: Post) => ({
           ...post,
           date: formatDate(post.date),
@@ -55,8 +66,26 @@ const ClassPage = ({ params }: { params: { classId: string } }) => {
     }
   };
 
+  const fetchUserData = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:5000/api/users/me`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+      });
+      const data: User = await response.json();
+      setIsTeacher(data.isTeacher);
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+    }
+  };
+
   useEffect(() => {
     fetchClassData();
+    fetchUserData();
   }, [classId, router]);
 
   const handleMenuItemClick = (itemId: string) => {
@@ -64,11 +93,29 @@ const ClassPage = ({ params }: { params: { classId: string } }) => {
   };
 
   const handlePostClick = (postId: string) => {
-    // Redirect to the post page with the postId
     router.push(`/classes/${classId}/posts/${postId}`);
   };
 
-  const [newPost, setNewPost] = useState({ title: '', description: '', content: '', date: '' });
+  const handlePostDelete = async (postId: string) => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/classes/${classId}/posts/${postId}`, {
+        method: 'DELETE',
+      });
+      if (response.ok) {
+        setClassData(prevData => ({
+          ...prevData,
+          posts: prevData.posts.filter(post => post._id !== postId),
+        }));
+      } else {
+        const errorData = await response.json();
+        console.error('Error deleting post:', errorData);
+      }
+    } catch (error) {
+      console.error('Error deleting post:', error);
+    }
+  };
+
+  const [newPost, setNewPost] = useState({ title: '', description: '', content: '', date: '', dueDate: '', materials: [] });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -76,17 +123,17 @@ const ClassPage = ({ params }: { params: { classId: string } }) => {
       ...prevPost,
       [name]: value,
     }));
-  };  
+  };
 
   const handlePostSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const currentDate = new Date().toISOString();
-  
+
     const postData = {
       ...newPost,
       date: currentDate,
     };
-  
+
     try {
       const response = await fetch(`http://localhost:5000/api/classes/${classId}/posts`, {
         method: 'POST',
@@ -95,18 +142,11 @@ const ClassPage = ({ params }: { params: { classId: string } }) => {
         },
         body: JSON.stringify(postData),
       });
-  
+
       if (response.ok) {
-        const createdPost = await response.json();
-  
-        // Update state immutably
-        setClassData(prevData => ({
-          ...prevData,
-          posts: [...prevData.posts, createdPost], // Ensure immutability
-        }));
-  
-        setNewPost({ title: '', description: '', content: '', date: '' });
+        setNewPost({ title: '', description: '', content: '', date: '', dueDate: '', materials: [] });
         setShowPostForm(false);
+        fetchClassData();
       } else {
         const errorData = await response.json();
         console.error('Error creating post:', errorData);
@@ -114,10 +154,10 @@ const ClassPage = ({ params }: { params: { classId: string } }) => {
     } catch (error) {
       console.error('Error creating post:', error);
     }
-  };  
+  };
 
   if (!classData) {
-    return <div>Loading...</div>; // You can add a loading indicator while fetching data
+    return <div>Loading...</div>;
   }
 
   return (
@@ -129,16 +169,15 @@ const ClassPage = ({ params }: { params: { classId: string } }) => {
           <ClassInfoCard
             title={classData.title}
             description={classData.description}
-            code={classData.code} // Pass the class code to ClassInfoCard
+            code={classData.code}
           />
           {activeItem === 'posts' && (
             <>
-              <button
-                onClick={() => setShowPostForm(!showPostForm)}
-                className="bg-blue-500 text-white px-4 py-2 rounded mb-4"
-              >
+              {isTeacher && (
+                <button onClick={() => setShowPostForm(!showPostForm)}className="bg-blue-500 text-white px-4 py-2 rounded mb-4">
                 {showPostForm ? 'Cancel' : 'Add Post'}
-              </button>
+                </button>
+              )}
               {showPostForm && (
                 <form onSubmit={handlePostSubmit} className="mb-4">
                   <div className="mb-2">
@@ -162,15 +201,58 @@ const ClassPage = ({ params }: { params: { classId: string } }) => {
                       className="w-full p-2 border border-gray-300 rounded"
                     />
                   </div>
+                  <div className="mb-2">
+                    <label className="block text-sm font-bold mb-2" htmlFor="content">Content</label>
+                    <input
+                      type="text"
+                      name="content"
+                      value={newPost.content}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full p-2 border border-gray-300 rounded"
+                    />
+                  </div>
+                  <div className="mb-2">
+                    <label className="block text-sm font-bold mb-2" htmlFor="date">Date</label>
+                    <input
+                      type="date"
+                      name="date"
+                      value={newPost.date}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full p-2 border border-gray-300 rounded"
+                    />
+                  </div>
+                  <div className="mb-2">
+                    <label className="block text-sm font-bold mb-2" htmlFor="dueDate">Due Date</label>
+                    <input
+                      type="date"
+                      name="dueDate"
+                      value={newPost.dueDate}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full p-2 border border-gray-300 rounded"
+                    />
+                  </div>
+                  <div className="mb-2">
+                    <label className="block text-sm font-bold mb-2" htmlFor="materials">Materials</label>
+                    <input
+                      type="text"
+                      name="materials"
+                      value={newPost.materials.join(',')}
+                      onChange={handleInputChange}
+                      className="w-full p-2 border border-gray-300 rounded"
+                    />
+                  </div>
                   <button type="submit" className="bg-green-500 text-white px-4 py-2 rounded">
                     Submit
                   </button>
                 </form>
               )}
-              <PostList posts={classData.posts} onPostClick={handlePostClick} />
+              <PostList posts={classData.posts} onPostClick={handlePostClick} onDelete={handlePostDelete} isTeacher={isTeacher} />
+
             </>
           )}
-          {/* Add more conditional rendering based on `activeItem` if needed */}
         </div>
       </div>
     </div>

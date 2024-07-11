@@ -23,6 +23,8 @@ const registerUser = async (req, res) => {
         password,
         batch: isTeacher ? undefined : batch,
         isTeacher,
+        enrolledClasses: [],
+        postSubmissions: [],
         token: undefined // Ensure token is not set to null
       });
   

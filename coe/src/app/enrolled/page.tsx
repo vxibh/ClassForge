@@ -17,10 +17,16 @@ const EnrolledClassesPage = () => {
 
   const fetchClasses = async () => {
     try {
+      const token = localStorage.getItem('token');// Assuming you store the token in localStorage
       const response = await fetch('http://localhost:5000/api/classes', {
         method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`, // Include the authorization header
+          'Content-Type': 'application/json'
+        },
       });
       const data = await response.json();
+      console.log(data)
       setClassesList(data);
     } catch (error) {
       console.error('Error fetching classes:', error);

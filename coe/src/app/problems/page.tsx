@@ -1,55 +1,73 @@
 'use client';
 
+import React, { useEffect, useState } from 'react';
 import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import AnnouncementBar from '@/components/AnnouncementBar';
-import { useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
-const problemsList = [
-  { id: 'problem1', title: 'Two Sum' },
-  { id: 'problem2', title: 'Reverse Linked List' },
-  { id: 'problem3', title: 'Valid Parentheses' },
-  // Add more problems as needed
-];
 
 const ProblemsPage = () => {
+  const [problems, setProblems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [activeItem, setActiveItem] = useState<string>('problems');
   const router = useRouter();
-  const searchParams = useSearchParams();
-
-  const classId = searchParams.get('classId');
-  const postId = searchParams.get('postId');
 
   const handleMenuItemClick = (itemId: string) => {
     setActiveItem(itemId);
   };
 
+  const handleProblemClick = (problemId: string) => {
+    router.push(`/problems/${problemId}`);
+  };
+
   useEffect(() => {
-    setActiveItem('problems');
+    const fetchProblems = async () => {
+      try {
+        const response = await fetch('/api/problems');
+        if (!response.ok) {
+          throw new Error('HTTP error! status: ${response.status}');
+        }
+        const data = await response.json();
+        setProblems(data);
+        setLoading(false);
+      } catch (error) {
+        setError(error.message);
+        setLoading(false);
+      }
+    };
+
+    fetchProblems();
   }, []);
 
-  const handleProblemClick = (problemId: string) => {
-    router.push(`/problems/${problemId}?classId=${classId}&postId=${postId}`);
-  };
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error: {error}</p>;
 
   return (
     <div className="h-screen flex flex-col">
       <Navbar />
       <div className="flex flex-1" style={{ marginTop: "56px" }}>
-        <Sidebar onItemClick={handleMenuItemClick} />
+        <Sidebar onItemClick={handleMenuItemClick} activeItem={activeItem} />
         <div className="flex-1 p-4 bg-gray-100 overflow-y-auto">
-          <h1 className="text-2xl font-bold mb-4">Coding Problems</h1>
+          <h1 className="text-3xl font-bold mb-6">Coding Problems</h1>
           <ul>
-            {problemsList.map(problem => (
-              <li key={problem.id} className="mb-2">
-                <a
-                  href="#"
-                  onClick={() => handleProblemClick(problem.id)}
-                  className="text-blue-500 hover:underline"
+            {problems.map(problem => (
+              <li key={problem.titleSlug} className="mb-8">
+                                
+
+                <h2 className="text-xl font-bold">{problem.title}</h2>
+                <div
+                  className="mt-4 text-gray-800"
+                  // dangerouslySetInnerHTML={{ __html: problem.content }}
+                />
+                <p className="mt-2 text-gray-600">Tags: {problem.topicTags.map(tag => tag.name).join(', ')}</p>
+                <button
+                  onClick={() => handleProblemClick(problem.titleSlug)}
+                  className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none"
                 >
-                  {problem.title}
-                </a>
+                  View Problem
+                </button>
               </li>
             ))}
           </ul>
