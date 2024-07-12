@@ -116,8 +116,10 @@ const PostPage = ({ params }: { params: { classId: string, postId: string } }) =
                 <ul className="list-disc pl-4">
                   {post.materials.map((material, index) => (
                     <li key={index} className="text-gray-700">
-                      <Link href={`/problem/${material.id}/${material.titleSlug}`}>
-                        <a className="text-blue-500 hover:underline">{material.title}</a>
+                      <Link
+                        href={`/problems/${material.titleSlug}`}
+                        className="text-blue-500 hover:underline">
+                        {material.title}
                       </Link>
                     </li>
                   ))}

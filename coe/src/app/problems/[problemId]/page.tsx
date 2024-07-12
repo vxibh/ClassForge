@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 import { useParams } from 'next/navigation';
 import Spinner from 'react-bootstrap/Spinner';
+import { ClimbingBoxLoader } from 'react-spinners';
 
 
 const CodeEditor = dynamic(() => import('@/components/CodeEditor'), { ssr: false });
@@ -52,7 +53,7 @@ const ProblemPage = () => {
 
   if (loading) {
     return <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}><Spinner animation="border" role="status">
-    <span className="sr-only">Loading...</span>
+    <span className="sr-only"><ClimbingBoxLoader /> </span>
   </Spinner></div>;
   }
 

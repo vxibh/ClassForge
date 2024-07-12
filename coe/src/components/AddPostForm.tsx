@@ -66,14 +66,21 @@ const AddPostForm: React.FC<AddPostFormProps> = ({ onSubmit, onFileChange, onSel
     }
   };
 
-  const handleSelectProblems = (selectedProblems: Problem[]) => {
-    setNewPost((prevPost) => ({
-      ...prevPost,
-      materials: [...prevPost.materials, ...selectedProblems],
+  const handleSelectProblems = (selectedProblems) => {
+    const formattedMaterials = selectedProblems.map(problem => ({
+      id: problem.id,
+      title: problem.title,
+      titleSlug: problem.titleSlug,
+      type: problem.type,
+      link: problem.link,
     }));
-    onSelectProblems(selectedProblems);
-    setShowProblemSetOverlay(false); // Close the overlay after selecting problems
+    
+    setNewPost(prevPost => ({
+      ...prevPost,
+      materials: [...prevPost.materials, ...formattedMaterials],
+    }));
   };
+  
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-75 z-50">

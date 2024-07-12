@@ -1,5 +1,5 @@
-// pages/api/problems.js
 import { GraphQLClient, gql } from 'graphql-request';
+import { v4 as uuidv4 } from 'uuid';
 
 const graphqlEndpoint = 'https://leetcode.com/graphql/';
 
@@ -30,7 +30,15 @@ export default async function handler(req, res) {
 
   try {
     const data = await client.request(query, variables);
-    res.status(200).json(data.problemsetQuestionList.questions);
+    const problemsWithIdAndType = data.problemsetQuestionList.questions.map(question => ({
+      id: uuidv4(),
+      title: question.title,
+      titleSlug: question.titleSlug,
+      type: 'leetcode_problem',
+      link: `https://leetcode.com/problems/${question.titleSlug}`,
+      topicTags: question.topicTags,
+    }));
+    res.status(200).json(problemsWithIdAndType);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Error fetching problems' });

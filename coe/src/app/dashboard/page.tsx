@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import AnnouncementBar from '@/components/AnnouncementBar';
+import { ClimbingBoxLoader } from 'react-spinners';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -39,7 +40,7 @@ export default function Dashboard() {
   }, [router]);
 
   if (!isLoaded) {
-    return <div className="spinner-border" role="status"> <span className="sr-only">Loading...</span> </div>;
+    return <div> <ClimbingBoxLoader /> </div>;
   }
 
   const handleMenuItemClick = (itemId) => {

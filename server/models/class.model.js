@@ -2,9 +2,13 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const MaterialSchema = new Schema({
-  type: { type: String, required: true },
-  link: { type: String, required: true },
+  id: { type: String},
+  title: { type: String },
+  titleSlug: { type: String },
+  type: { type: String },
+  link: { type: String },
 });
+
 
 const PostSchema = new Schema({
   title: { type: String, required: true },

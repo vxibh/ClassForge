@@ -5,7 +5,7 @@ import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import AnnouncementBar from '@/components/AnnouncementBar';
 import { useRouter } from 'next/navigation';
-
+import Loader from '@/components/Loader';
 
 const ProblemsPage = () => {
   const [problems, setProblems] = useState([]);
@@ -41,7 +41,7 @@ const ProblemsPage = () => {
     fetchProblems();
   }, []);
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) return <p><Loader/></p>;
   if (error) return <p>Error: {error}</p>;
 
   return (

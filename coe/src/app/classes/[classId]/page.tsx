@@ -1,5 +1,4 @@
-// pages/classes/[classId].tsx
-'use client'
+'use client';
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
@@ -8,7 +7,7 @@ import ClassInfoCard from '@/components/ClassInfoCard';
 import PostList from '@/components/PostList';
 import ProblemSetOverlay from '@/components/ProblemSetOverlay';
 import AddPostForm from '@/components/AddPostForm'; // Import the AddPostForm component
-import { Post, ClassData, User } from '@/types'; // Make sure to import types as needed
+import { Post, ClassData, User, Problem } from '@/types'; // Make sure to import types as needed
 
 const formatDate = (isoDate: string): string => {
   const datePart = isoDate.split('T')[0];
@@ -33,7 +32,6 @@ const ClassPage = ({ params }: { params: { classId: string } }) => {
 
   const router = useRouter();
   const { classId } = params;
-
 
   const fetchClassData = async () => {
     try {
@@ -110,23 +108,34 @@ const ClassPage = ({ params }: { params: { classId: string } }) => {
   };
 
   const handleSelectProblems = (selectedProblems: Problem[]) => {
-    const problemTitles = selectedProblems.map((problem) => problem.title);
     setNewPost((prevPost) => ({
       ...prevPost,
-      materials: [...prevPost.materials, ...problemTitles],
+      materials: [...prevPost.materials, ...selectedProblems],
     }));
   };
 
   const handlePostFormSubmit = async (postData: any) => {
     try {
+      // Format materials correctly
+      const formattedPostData = {
+        ...postData,
+        materials: postData.materials.map((material: any) => ({
+          id: material.id,
+          title: material.title,
+          titleSlug: material.titleSlug,
+          type: material.type,
+          link: material.link,
+        })),
+      };
+  
       const response = await fetch(`http://localhost:5000/api/classes/${classId}/posts`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(postData),
+        body: JSON.stringify(formattedPostData),
       });
-
+  
       if (response.ok) {
         setNewPost({
           _id: '',
@@ -197,7 +206,6 @@ const ClassPage = ({ params }: { params: { classId: string } }) => {
                   onSubmit={handlePostFormSubmit}
                   onClose={() => setShowAddPostForm(false)}
                   onSelectProblems={handleSelectProblems}
-                  onClose={handleCloseForm}
                 />
               )}
             </>

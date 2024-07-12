@@ -8,10 +8,10 @@ const Navbar = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   return (
-    <nav className="w-full h-14 bg-gray-700 fixed top-0 left-0 right-0 z-10">
+    <nav className="w-full h-16 bg-gray-700 fixed top-0 left-0 right-0 bottom-5">
       <div className="flex justify-between px-4 mx-auto lg:max-w-7xl md:items-center md:flex md:px-8">
         <div className="flex items-center" style={{ marginTop: '4px' }}>
-          <Link href="/">
+          <Link href="/" legacyBehavior>
             <h2 className="text-2xl text-red-500 font-bold cursor-pointer">ClassForge</h2>
           </Link>
           <ul className="flex items-center ml-10 space-x-6">
@@ -46,7 +46,7 @@ const Navbar = () => {
         </div>
         <div className="relative" style={{display:"flex"}}>
           
-        <Link href="/class/join">
+        <Link href="/class/join" legacyBehavior>
         <span className="text-2xl text-white p-5 hover:bg-purple-600 md:hover:text-purple-600 md:hover:bg-transparent cursor-pointer">+</span></Link>
 
 
