@@ -4,6 +4,8 @@ import Navbar from '@/components/Navbar';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 import { useParams } from 'next/navigation';
+import Spinner from 'react-bootstrap/Spinner';
+
 
 const CodeEditor = dynamic(() => import('@/components/CodeEditor'), { ssr: false });
 
@@ -49,7 +51,9 @@ const ProblemPage = () => {
   }, [problemId]);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}><Spinner animation="border" role="status">
+    <span className="sr-only">Loading...</span>
+  </Spinner></div>;
   }
 
   if (error) {

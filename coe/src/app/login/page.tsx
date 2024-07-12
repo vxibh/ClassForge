@@ -1,8 +1,11 @@
-'use client'
+'use client';
+
 import { useState } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -27,14 +30,14 @@ const Login = () => {
       const token = res.data.token; // Get token from response data
       localStorage.setItem('token', token); // Save token to localStorage
       console.log(token);
+      toast.success('Login successful!');
       router.push('/dashboard'); // Redirect to dashboard
     } catch (error) {
       console.error(error.response.data);
+      toast.error(error.response.data.message || 'Login failed');
     }
   };
   
-  
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="max-w-md w-full bg-white p-8 rounded-lg shadow-md">
@@ -72,6 +75,7 @@ const Login = () => {
             Sign up
           </Link>
         </p>
+        <ToastContainer />
       </div>
     </div>
   );

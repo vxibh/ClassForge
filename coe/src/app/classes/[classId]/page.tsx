@@ -1,31 +1,14 @@
-'use client';
-import { useEffect, useState } from 'react';
+// pages/classes/[classId].tsx
+'use client'
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import ClassInfoCard from '@/components/ClassInfoCard';
 import PostList from '@/components/PostList';
-
-interface Post {
-  _id: string;
-  title: string;
-  description: string;
-  date: string;
-  content: string;
-  dueDate: string;
-  materials: string[];
-}
-
-interface ClassData {
-  title: string;
-  description: string;
-  posts: Post[];
-  code: string;
-}
-
-interface User {
-  isTeacher: boolean;
-}
+import ProblemSetOverlay from '@/components/ProblemSetOverlay';
+import AddPostForm from '@/components/AddPostForm'; // Import the AddPostForm component
+import { Post, ClassData, User } from '@/types'; // Make sure to import types as needed
 
 const formatDate = (isoDate: string): string => {
   const datePart = isoDate.split('T')[0];
@@ -35,10 +18,22 @@ const formatDate = (isoDate: string): string => {
 const ClassPage = ({ params }: { params: { classId: string } }) => {
   const [activeItem, setActiveItem] = useState<string>('posts');
   const [classData, setClassData] = useState<ClassData | null>(null);
-  const [showPostForm, setShowPostForm] = useState(false);
   const [isTeacher, setIsTeacher] = useState<boolean>(false);
+  const [showAddPostForm, setShowAddPostForm] = useState(false);
+  const [showProblemSetOverlay, setShowProblemSetOverlay] = useState<boolean>(false);
+  const [newPost, setNewPost] = useState<Post>({
+    _id: '',
+    title: '',
+    description: '',
+    date: '',
+    content: '',
+    dueDate: '',
+    materials: [],
+  });
+
   const router = useRouter();
   const { classId } = params;
+
 
   const fetchClassData = async () => {
     try {
@@ -46,8 +41,8 @@ const ClassPage = ({ params }: { params: { classId: string } }) => {
       const response = await fetch(`http://localhost:5000/api/classes/${classId}`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
         },
       });
       const data = await response.json();
@@ -72,8 +67,8 @@ const ClassPage = ({ params }: { params: { classId: string } }) => {
       const response = await fetch(`http://localhost:5000/api/users/me`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
         },
       });
       const data: User = await response.json();
@@ -83,11 +78,6 @@ const ClassPage = ({ params }: { params: { classId: string } }) => {
     }
   };
 
-  useEffect(() => {
-    fetchClassData();
-    fetchUserData();
-  }, [classId, router]);
-
   const handleMenuItemClick = (itemId: string) => {
     setActiveItem(itemId);
   };
@@ -96,15 +86,19 @@ const ClassPage = ({ params }: { params: { classId: string } }) => {
     router.push(`/classes/${classId}/posts/${postId}`);
   };
 
+  const handleCloseForm = () => {
+    setShowAddPostForm(false);
+  };
+
   const handlePostDelete = async (postId: string) => {
     try {
       const response = await fetch(`http://localhost:5000/api/classes/${classId}/posts/${postId}`, {
         method: 'DELETE',
       });
       if (response.ok) {
-        setClassData(prevData => ({
+        setClassData((prevData) => ({
           ...prevData,
-          posts: prevData.posts.filter(post => post._id !== postId),
+          posts: prevData.posts.filter((post) => post._id !== postId),
         }));
       } else {
         const errorData = await response.json();
@@ -115,25 +109,15 @@ const ClassPage = ({ params }: { params: { classId: string } }) => {
     }
   };
 
-  const [newPost, setNewPost] = useState({ title: '', description: '', content: '', date: '', dueDate: '', materials: [] });
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
+  const handleSelectProblems = (selectedProblems: Problem[]) => {
+    const problemTitles = selectedProblems.map((problem) => problem.title);
     setNewPost((prevPost) => ({
       ...prevPost,
-      [name]: value,
+      materials: [...prevPost.materials, ...problemTitles],
     }));
   };
 
-  const handlePostSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const currentDate = new Date().toISOString();
-
-    const postData = {
-      ...newPost,
-      date: currentDate,
-    };
-
+  const handlePostFormSubmit = async (postData: any) => {
     try {
       const response = await fetch(`http://localhost:5000/api/classes/${classId}/posts`, {
         method: 'POST',
@@ -144,8 +128,16 @@ const ClassPage = ({ params }: { params: { classId: string } }) => {
       });
 
       if (response.ok) {
-        setNewPost({ title: '', description: '', content: '', date: '', dueDate: '', materials: [] });
-        setShowPostForm(false);
+        setNewPost({
+          _id: '',
+          title: '',
+          description: '',
+          date: '',
+          content: '',
+          dueDate: '',
+          materials: [],
+        });
+        setShowAddPostForm(false);
         fetchClassData();
       } else {
         const errorData = await response.json();
@@ -156,6 +148,11 @@ const ClassPage = ({ params }: { params: { classId: string } }) => {
     }
   };
 
+  useEffect(() => {
+    fetchClassData();
+    fetchUserData();
+  }, [classId, router]);
+
   if (!classData) {
     return <div>Loading...</div>;
   }
@@ -163,7 +160,7 @@ const ClassPage = ({ params }: { params: { classId: string } }) => {
   return (
     <div className="h-screen flex flex-col">
       <Navbar />
-      <div className="flex flex-1" style={{ marginTop: "56px" }}>
+      <div className="flex flex-1" style={{ marginTop: '56px' }}>
         <Sidebar onItemClick={handleMenuItemClick} />
         <div className="flex-1 p-4 bg-gray-100 overflow-y-auto">
           <ClassInfoCard
@@ -174,87 +171,45 @@ const ClassPage = ({ params }: { params: { classId: string } }) => {
           {activeItem === 'posts' && (
             <>
               {isTeacher && (
-                <button onClick={() => setShowPostForm(!showPostForm)}className="bg-blue-500 text-white px-4 py-2 rounded mb-4">
-                {showPostForm ? 'Cancel' : 'Add Post'}
-                </button>
-              )}
-              {showPostForm && (
-                <form onSubmit={handlePostSubmit} className="mb-4">
-                  <div className="mb-2">
-                    <label className="block text-sm font-bold mb-2" htmlFor="title">Title</label>
-                    <input
-                      type="text"
-                      name="title"
-                      value={newPost.title}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full p-2 border border-gray-300 rounded"
-                    />
-                  </div>
-                  <div className="mb-2">
-                    <label className="block text-sm font-bold mb-2" htmlFor="description">Description</label>
-                    <textarea
-                      name="description"
-                      value={newPost.description}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full p-2 border border-gray-300 rounded"
-                    />
-                  </div>
-                  <div className="mb-2">
-                    <label className="block text-sm font-bold mb-2" htmlFor="content">Content</label>
-                    <input
-                      type="text"
-                      name="content"
-                      value={newPost.content}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full p-2 border border-gray-300 rounded"
-                    />
-                  </div>
-                  <div className="mb-2">
-                    <label className="block text-sm font-bold mb-2" htmlFor="date">Date</label>
-                    <input
-                      type="date"
-                      name="date"
-                      value={newPost.date}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full p-2 border border-gray-300 rounded"
-                    />
-                  </div>
-                  <div className="mb-2">
-                    <label className="block text-sm font-bold mb-2" htmlFor="dueDate">Due Date</label>
-                    <input
-                      type="date"
-                      name="dueDate"
-                      value={newPost.dueDate}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full p-2 border border-gray-300 rounded"
-                    />
-                  </div>
-                  <div className="mb-2">
-                    <label className="block text-sm font-bold mb-2" htmlFor="materials">Materials</label>
-                    <input
-                      type="text"
-                      name="materials"
-                      value={newPost.materials.join(',')}
-                      onChange={handleInputChange}
-                      className="w-full p-2 border border-gray-300 rounded"
-                    />
-                  </div>
-                  <button type="submit" className="bg-green-500 text-white px-4 py-2 rounded">
-                    Submit
+                <div className="mb-4">
+                  <button
+                    onClick={() => setShowAddPostForm(true)}
+                    className="bg-blue-500 text-white px-4 py-2 rounded mr-4"
+                  >
+                    Add Post
                   </button>
-                </form>
+                  <button
+                    onClick={() => setShowProblemSetOverlay(true)}
+                    className="bg-blue-500 text-white px-4 py-2 rounded"
+                  >
+                    Select from Problem Set
+                  </button>
+                </div>
               )}
-              <PostList posts={classData.posts} onPostClick={handlePostClick} onDelete={handlePostDelete} isTeacher={isTeacher} />
-
+              <PostList
+                posts={classData.posts}
+                onPostClick={handlePostClick}
+                onDelete={handlePostDelete}
+                isTeacher={isTeacher}
+              />
+              {showAddPostForm && (
+                <AddPostForm
+                  onSubmit={handlePostFormSubmit}
+                  onClose={() => setShowAddPostForm(false)}
+                  onSelectProblems={handleSelectProblems}
+                  onClose={handleCloseForm}
+                />
+              )}
             </>
           )}
         </div>
       </div>
+      {showProblemSetOverlay && (
+        <ProblemSetOverlay
+          onClose={() => setShowProblemSetOverlay(false)}
+          onSelectProblems={handleSelectProblems}
+        />
+      )}
     </div>
   );
 };

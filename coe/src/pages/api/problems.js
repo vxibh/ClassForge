@@ -22,7 +22,7 @@ export default async function handler(req, res) {
   const variables = {
     categorySlug: "",
     skip: 0,
-    limit: 100,
+    limit: 200,
     filters: {}
   };
 

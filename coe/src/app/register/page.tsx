@@ -1,7 +1,10 @@
 'use client';
+
 import { useState } from 'react';
 import axios from 'axios';
-import {useRouter} from 'next/navigation';
+import { useRouter } from 'next/navigation';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -28,12 +31,15 @@ const Register = () => {
     try {
       const res = await axios.post('http://localhost:5000/api/auth/register', formData);
       console.log(res.data);
+      toast.success('Registration successful!');
       router.push('/login');
     } catch (error) {
       if (error.response) {
         console.error(error.response.data);
+        toast.error(error.response.data.message || 'Registration failed');
       } else {
         console.error(error.message);
+        toast.error('An error occurred');
       }
     }
   };
@@ -75,6 +81,7 @@ const Register = () => {
             Register
           </button>
         </form>
+        <ToastContainer />
       </div>
     </div>
   );

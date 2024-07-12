@@ -1,12 +1,15 @@
-// PostPage.jsx
 "use client";
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import YourWorkBox from './YourWorkBox';
 
 interface Material {
+  id: string;
+  title: string;
+  titleSlug: string;
   type: string;
   link: string;
 }
@@ -21,7 +24,9 @@ interface Post {
   materials: Material[];
 }
 
-const formatDate = (isoDate: string): string => {
+const formatDate = (isoDate: string | null): string => {
+  if (!isoDate) return ''; // Add a null check here
+
   const datePart = isoDate.split('T')[0];
   return datePart;
 };
@@ -48,6 +53,7 @@ const PostPage = ({ params }: { params: { classId: string, postId: string } }) =
         }
 
         const postData = await response.json();
+        console.log('Post Data:', postData); // Log the postData to check materials array
 
         const formattedPost: Post = {
           ...postData,
@@ -79,6 +85,8 @@ const PostPage = ({ params }: { params: { classId: string, postId: string } }) =
   const isDueDatePassed = new Date(post.dueDate) < new Date();
 
   const getIcon = (type: string) => {
+    if (!type) return '/icons/default.svg'; // Handle the case where type is undefined or null
+
     switch (type.toLowerCase()) {
       case 'pdf':
         return '/icons/pdf.svg';
@@ -105,15 +113,15 @@ const PostPage = ({ params }: { params: { classId: string, postId: string } }) =
             <div className="text-gray-700 mb-4">
               <strong>Materials: </strong>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                {post.materials.map((material, index) => (
-                  <a href={material.link} target="_blank" key={index} className="block bg-gray-200 rounded-lg p-4 shadow-md hover:bg-gray-300">
-                    <div className="flex items-center mb-2">
-                      <img src={getIcon(material.type)} alt={material.type} className="w-8 h-8 mr-2" />
-                      <span className="text-lg font-semibold">{material.type.toUpperCase()}</span>
-                    </div>
-                    <p className="text-gray-700">{material.link.split('/').pop()}</p>
-                  </a>
-                ))}
+                <ul className="list-disc pl-4">
+                  {post.materials.map((material, index) => (
+                    <li key={index} className="text-gray-700">
+                      <Link href={`/problem/${material.id}/${material.titleSlug}`}>
+                        <a className="text-blue-500 hover:underline">{material.title}</a>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
           </div>

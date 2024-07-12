@@ -12,7 +12,7 @@ const Navbar = () => {
       <div className="flex justify-between px-4 mx-auto lg:max-w-7xl md:items-center md:flex md:px-8">
         <div className="flex items-center" style={{ marginTop: '4px' }}>
           <Link href="/">
-            <h2 className="text-2xl text-red-600 font-bold cursor-pointer">ClassForge</h2>
+            <h2 className="text-2xl text-red-500 font-bold cursor-pointer">ClassForge</h2>
           </Link>
           <ul className="flex items-center ml-10 space-x-6">
             <li className="text-xl text-white py-2 hover:bg-purple-900 md:hover:text-purple-600 md:hover:bg-transparent">
