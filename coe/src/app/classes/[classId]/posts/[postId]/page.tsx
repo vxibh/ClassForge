@@ -12,6 +12,7 @@ interface Material {
   titleSlug: string;
   type: string;
   link: string;
+  status: string; // Adding status to Material interface
 }
 
 interface Post {
@@ -112,18 +113,24 @@ const PostPage = ({ params }: { params: { classId: string, postId: string } }) =
             </div>
             <div className="text-gray-700 mb-4">
               <strong>Materials: </strong>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                <ul className="list-disc pl-4">
-                  {post.materials.map((material, index) => (
-                    <li key={index} className="text-gray-700">
-                      <Link
-                        href={`/problems/${material.titleSlug}`}
-                        className="text-blue-500 hover:underline">
-                        {material.title}
+              <div className="grid grid-cols-1 gap-4">
+                {post.materials.map((material, index) => (
+                  <div key={index} className="bg-white rounded-lg shadow-md p-4 mb-4">
+                    <h3 className="text-xl font-semibold mb-2">{material.title}</h3>
+                    <div className="flex justify-between items-center">
+                      <Link href={`/problems/${material.titleSlug}`} className="text-blue-500 hover:underline">
+                        View
                       </Link>
-                    </li>
-                  ))}
-                </ul>
+                      <span className="text-sm text-gray-500">
+                        {material.status === 'solved' ? (
+                          <span className="text-green-500">&#10003; Solved</span>
+                        ) : (
+                          <span className="text-red-500">&#10007; Not Solved</span>
+                        )}
+                      </span>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
