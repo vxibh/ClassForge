@@ -114,26 +114,26 @@ const ClassPage = ({ params }: { params: { classId: string } }) => {
     }));
   };
 
-  const handlePostFormSubmit = async (postData: any) => {
+  const handlePostFormSubmit = async (postData) => {
     try {
-      // Format materials correctly
-      const formattedPostData = {
-        ...postData,
-        materials: postData.materials.map((material: any) => ({
-          id: material.id,
-          title: material.title,
-          titleSlug: material.titleSlug,
-          type: material.type,
-          link: material.link,
-        })),
-      };
+      const formData = new FormData();
+      formData.append('title', postData.title);
+      formData.append('description', postData.description);
+      formData.append('content', postData.content);
+      formData.append('date', postData.date);
+      formData.append('dueDate', postData.dueDate);
+  
+      // Append the file to the form data if it exists
+      if (postData.file) {
+        formData.append('file', postData.file);
+      }
+  
+      // Append materials as a JSON string
+      formData.append('materials', JSON.stringify(postData.materials));
   
       const response = await fetch(`http://localhost:5000/api/classes/${classId}/posts`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formattedPostData),
+        body: formData,
       });
   
       if (response.ok) {
@@ -156,6 +156,8 @@ const ClassPage = ({ params }: { params: { classId: string } }) => {
       console.error('Error creating post:', error);
     }
   };
+  
+  
 
   useEffect(() => {
     fetchClassData();
@@ -186,12 +188,6 @@ const ClassPage = ({ params }: { params: { classId: string } }) => {
                     className="bg-blue-500 text-white px-4 py-2 rounded mr-4"
                   >
                     Add Post
-                  </button>
-                  <button
-                    onClick={() => setShowProblemSetOverlay(true)}
-                    className="bg-blue-500 text-white px-4 py-2 rounded"
-                  >
-                    Select from Problem Set
                   </button>
                 </div>
               )}

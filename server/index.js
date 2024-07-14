@@ -41,6 +41,8 @@ mongoose
     console.log("DB Connection Error:", err.message);
   });
 
+  app.use('/uploads', express.static('uploads'));
+
   app.use('/api/auth', authRoutes);
 
   const authMiddleware = async (req, res, next) => {

@@ -16,6 +16,7 @@ const AddPostForm: React.FC<AddPostFormProps> = ({ onSubmit, onFileChange, onSel
     date: '',
     dueDate: '',
     materials: [],
+    file: null, // Add file state
   });
 
   const [showProblemSetOverlay, setShowProblemSetOverlay] = useState(false); // State for showing problem set overlay
@@ -28,20 +29,28 @@ const AddPostForm: React.FC<AddPostFormProps> = ({ onSubmit, onFileChange, onSel
     }));
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files[0]) {
+      setNewPost((prevPost) => ({
+        ...prevPost,
+        file: files[0], // Store the file in the state
+      }));
+    }
+  };
+
   const handlePostSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const currentDate = new Date().toISOString();
 
-    // Ensure materials include both title and titleSlug
     const formattedMaterials = newPost.materials.map((material: Problem) => ({
       title: material.title,
       titleSlug: material.titleSlug,
     }));
-
+    
     const postData = {
       ...newPost,
       date: currentDate,
-      materials: formattedMaterials,
     };
 
     onSubmit(postData);
@@ -52,19 +61,10 @@ const AddPostForm: React.FC<AddPostFormProps> = ({ onSubmit, onFileChange, onSel
       date: '',
       dueDate: '',
       materials: [],
+      file: null,
     });
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files && files[0]) {
-      setNewPost((prevPost) => ({
-        ...prevPost,
-        materials: [...prevPost.materials, { title: files[0].name, titleSlug: '' }],
-      }));
-      onFileChange(e);
-    }
-  };
 
   const handleSelectProblems = (selectedProblems) => {
     const formattedMaterials = selectedProblems.map(problem => ({
@@ -84,7 +84,7 @@ const AddPostForm: React.FC<AddPostFormProps> = ({ onSubmit, onFileChange, onSel
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-75 z-50">
-      <div className="relative bg-white p-8 rounded-lg w-full max-w-4xl ">
+      <div className="relative bg-white p-8 rounded-lg w-full max-w-4xl max-h-screen overflow-auto">
         <button
           onClick={onClose}
           className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center cursor-pointer"
@@ -195,7 +195,7 @@ const AddPostForm: React.FC<AddPostFormProps> = ({ onSubmit, onFileChange, onSel
               <button
                 type="button"
                 onClick={() => setShowProblemSetOverlay(true)}
-                className="bg-blue-500 text-white px-4 py-2 rounded"
+                className="bg-blue-500 text-white px-4 py-2 rounded mt-6"
               >
                 Select from Problem Set
               </button>

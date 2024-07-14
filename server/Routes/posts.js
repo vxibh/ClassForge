@@ -1,6 +1,90 @@
 const express = require('express');
 const router = express.Router();
+const multer = require('multer');
 const Class = require('../models/class.model');
+const path = require('path');
+const fs = require('fs');
+// Multer configuration
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, './uploads'); // Upload destination directory
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + file.originalname; // Unique filename
+    cb(null, uniqueSuffix);
+  }
+});
+
+const upload = multer({ storage: storage });
+
+router.get('/files/:classId/:postId/:fileName', async (req, res) => {
+  try {
+    const classId = req.params.classId;
+    const postId = req.params.postId;
+    const fileName = req.params.fileName;
+
+    // Fetch the class from the database (to get file path)
+    const classData = await Class.findById(classId);
+    if (!classData) {
+      return res.status(404).json({ message: 'Class not found' });
+    }
+
+    // Find the post in the class data
+    const post = classData.posts.id(postId);
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    // Get the file path from the materials array (assuming single file upload per post)
+    const filePath = post.materials[0].filePath;
+    console.log(filePath)
+    // Construct the absolute path to the file
+    const absolutePath = path.resolve(filePath);
+    console.log(absolutePath)
+    // Check if the file exists
+    if (!fs.existsSync(absolutePath)) {
+      return res.status(404).json({ message: 'File not found' });
+    }
+
+    // Stream the file to the client
+    res.sendFile(absolutePath);
+  } catch (err) {
+    console.error('Error retrieving file:', err);
+    res.status(500).json({ message: 'Failed to retrieve file' });
+  }
+});
+
+
+// Create a new post in a specific class with file upload
+router.post('/:classId/posts', upload.single('file'), getClass, async (req, res) => {
+  try {
+    const materials = req.body.materials ? JSON.parse(req.body.materials) : [];
+
+    if (req.file) {
+      materials.push({
+        title: req.file.originalname,
+        type: req.file.mimetype,
+        filePath: req.file.path,
+      });
+    }
+
+    const post = {
+      title: req.body.title,
+      description: req.body.description,
+      content: req.body.content,
+      date: req.body.date,
+      dueDate: req.body.dueDate,
+      materials: materials,
+    };
+
+    res.class.posts.push(post);
+    const updatedClass = await res.class.save();
+    res.status(201).json(updatedClass);
+  } catch (err) {
+    console.error('Error creating post:', err);
+    res.status(400).json({ message: err.message });
+  }
+});
 
 // Get all posts in a specific class
 router.get('/:classId/posts', getClass, (req, res) => {
