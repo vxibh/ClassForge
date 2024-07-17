@@ -55,4 +55,24 @@ router.get('/user/:userId/problem/:problemId/language/:language', async (req, re
   }
 });
 
+// Update submission status
+router.put('/update-status/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const submission = await ProblemSubmission.findById(id);
+    if (!submission) {
+      return res.status(404).json({ message: 'Submission not found' });
+    }
+
+    submission.status = status;
+    await submission.save();
+
+    res.status(200).json(submission);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+});
+
 module.exports = router;

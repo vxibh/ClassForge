@@ -8,9 +8,28 @@ const PostSubmissionSchema = new Schema({
     required: true,
   },
   postDetails: {
-    type: Schema.Types.ObjectId,
-    ref: 'ProblemSubmission', // Reference to the ProblemSubmission model
-    required: true,
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    problemId: {
+      type: String,
+      required: true,
+    },
+    code: {
+      type: String,
+      required: true,
+    },
+    language: {
+      type: String,
+      required: true,
+    },
+    status: {
+      type: String,
+      enum: ['submitted', 'solved', 'not solved'],
+      default: 'submitted',
+    },
   },
   postId: {
     type: Schema.Types.ObjectId,

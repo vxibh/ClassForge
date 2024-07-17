@@ -93,7 +93,7 @@ const CodeEditor = ({ user, problemId }) => {
         )}
       </div>
       <div className="h-2/5">
-        <Output editorRef={editorRef} language={language} userId={user._id} problemId={problemId} />
+        <Output editorRef={editorRef} language={language} userId={user} problemId={problemId} />
       </div>
     </div>
   );

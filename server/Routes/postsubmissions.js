@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 const PostSubmission = require('../models/postsubmission.model');
 const User = require('../models/user.model');
 const ProblemSubmission = require('../models/problemSubmission.model');
@@ -8,19 +9,24 @@ const { authMiddleware } = require('../middleware/authmiddleware');
 // Create a new submission
 router.post('/:classId/:postId', authMiddleware, async (req, res) => {
   const { classId, postId } = req.params;
-  const { postDetails } = req.body; // Assuming only postDetails are needed for the submission
+  const { postDetails } = req.body;
 
   try {
-    // Check if the provided postDetails is valid
-    const problemSubmission = await ProblemSubmission.findById(postDetails);
-    if (!problemSubmission) {
-      return res.status(400).json({ error: 'Invalid postDetails' });
+    // Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(classId) || !mongoose.Types.ObjectId.isValid(postId) || !mongoose.Types.ObjectId.isValid(postDetails.userId)) {
+      return res.status(400).json({ error: 'Invalid ObjectId' });
     }
 
     // Create a new PostSubmission document
     const newSubmission = new PostSubmission({
       classId,
-      postDetails,
+      postDetails: {
+        userId: postDetails.userId,
+        problemId: postDetails.problemId,
+        code: postDetails.code,
+        language: postDetails.language,
+        status: 'submitted',
+      },
       postId,
     });
 
@@ -47,6 +53,11 @@ router.get('/:classId/:postId', authMiddleware, async (req, res) => {
   const { classId, postId } = req.params;
 
   try {
+    // Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(classId) || !mongoose.Types.ObjectId.isValid(postId)) {
+      return res.status(400).json({ error: 'Invalid ObjectId' });
+    }
+
     // Find the submission based on classId, postId, and user ID
     const submission = await PostSubmission.findOne({ classId, postId });
     if (!submission) {

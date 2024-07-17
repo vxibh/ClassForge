@@ -130,29 +130,29 @@ const PostPage = ({ params }: { params: { classId: string; postId: string } }) =
       if (!token) {
         throw new Error('No token found');
       }
-
+    
+      // Step 2: Create a new PostSubmission entry using the ProblemSubmission ID
       const response = await fetch(
         `http://localhost:5000/api/postsubmissions/${params.classId}/${params.postId}`,
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
+            'Authorization': `Bearer ${token}`,
           },
           body: JSON.stringify({
             classId: params.classId,
             postDetails: {
-              userId: user?._id,
-              problemId: 'problem_id_here',
-              code: 'User submitted code',
-              language: 'javascript',
-              status: 'submitted',
-            },
+              userId: "668ffe0b97f52aa66f67fc7c",
+              problemId: "palindrome",
+              code: "hello",
+              language: "javascript"
+              }, // Use the ProblemSubmission ID
             postId: params.postId,
           }),
         }
       );
-
+  
       if (response.ok) {
         setSubmissionStatus('Submitted');
       } else {
@@ -162,6 +162,7 @@ const PostPage = ({ params }: { params: { classId: string; postId: string } }) =
       console.error('Error submitting post:', error);
     }
   };
+  
 
   if (loading) {
     return (
@@ -211,6 +212,7 @@ const PostPage = ({ params }: { params: { classId: string; postId: string } }) =
             <div className="text-gray-700 mb-4">
               <strong>Materials: </strong>
               <div className="grid grid-cols-1 gap-4">
+                {console.log(post)}
                 {post.materials.map((material, index) => (
                   <div
                     key={index}
@@ -227,7 +229,7 @@ const PostPage = ({ params }: { params: { classId: string; postId: string } }) =
                         View
                       </Link>
                       <span className="text-sm text-gray-500">
-                        {material.status === 'solved' ? (
+                        {material.status === 'sum' ? (
                           <span className="text-green-500">&#10003; Solved</span>
                         ) : (
                           <span className="text-red-500">&#10007; Not Solved</span>

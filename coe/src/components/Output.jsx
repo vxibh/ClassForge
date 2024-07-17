@@ -104,19 +104,20 @@ const Output = ({ editorRef, language, userId, problemId }) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          userId: user._id,
-          problemId,
+          userId: user?._id,
+          problemId: problemId,
           code: sourceCode,
-          language,
+          language: language,
         }),
       });
   
+      console.log("hello", user)
       if (!response.ok) {
         throw new Error('Failed to submit code');
       }
   
       alert('Code submitted successfully!');
-      router.push(`/classes/${problemId}/posts/${problemId}`);
+      router.push(`/`);
     } catch (error) {
       console.error("Error submitting code:", error);
       setIsErrorSubmit(true);
