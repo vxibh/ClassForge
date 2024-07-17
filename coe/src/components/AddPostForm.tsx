@@ -16,7 +16,7 @@ const AddPostForm: React.FC<AddPostFormProps> = ({ onSubmit, onFileChange, onSel
     date: '',
     dueDate: '',
     materials: [],
-    file: null, // Add file state
+    file: null,
   });
 
   const [showProblemSetOverlay, setShowProblemSetOverlay] = useState(false); // State for showing problem set overlay

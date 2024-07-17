@@ -1,12 +1,11 @@
 'use client';
+
 import { useEffect, useState } from 'react';
 import Navbar from '@/components/Navbar';
 import dynamic from 'next/dynamic';
-import { useRouter } from 'next/router';
 import { useParams } from 'next/navigation';
 import Spinner from 'react-bootstrap/Spinner';
 import { ClimbingBoxLoader } from 'react-spinners';
-
 
 const CodeEditor = dynamic(() => import('@/components/CodeEditor'), { ssr: false });
 
@@ -16,13 +15,46 @@ interface Problem {
   topicTags: { name: string }[];
 }
 
+interface User {
+  _id: string;
+}
+
 const ProblemPage = () => {
   const { problemId } = useParams<{ problemId: string }>();
   const [problem, setProblem] = useState<Problem | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
+    const fetchUserDetails = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          throw new Error('No token found');
+        }
+
+        const response = await fetch('http://localhost:5000/api/users/me', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('User details fetched:', data);
+        setUser(data);
+      } catch (error) {
+        console.error('Error fetching user details:', error);
+        setUser(null);
+      }
+    };
+
     const fetchProblemDetails = async () => {
       if (!problemId) return;
 
@@ -31,7 +63,7 @@ const ProblemPage = () => {
         const response = await fetch(`/api/problems/${problemId}`);
 
         if (!response.ok) {
-          throw new Error('HTTP error! status: ${response.status}');
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
 
         const data = await response.json();
@@ -41,20 +73,25 @@ const ProblemPage = () => {
         }
 
         setProblem(data.question);
-        setLoading(false);
       } catch (error) {
         setError(error.message);
+      } finally {
         setLoading(false);
       }
     };
 
+    fetchUserDetails();
     fetchProblemDetails();
   }, [problemId]);
 
   if (loading) {
-    return <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}><Spinner animation="border" role="status">
-    <span className="sr-only"><ClimbingBoxLoader /> </span>
-  </Spinner></div>;
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
+        <Spinner animation="border" role="status">
+          <span className="sr-only"><ClimbingBoxLoader /></span>
+        </Spinner>
+      </div>
+    );
   }
 
   if (error) {
@@ -75,7 +112,12 @@ const ProblemPage = () => {
           <p className="mb-4">Tags: {problem.topicTags.map(tag => tag.name).join(', ')}</p>
         </div>
         <div className="w-1/2 min-h-full bg-gray-900 text-gray-500 px-6 py-8">
-          <CodeEditor />
+          {user && (
+            <CodeEditor
+              user={user?._id}
+              problemId={problemId}
+            />
+          )}
         </div>
       </div>
     </div>

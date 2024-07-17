@@ -42,6 +42,10 @@ const userSchema = new mongoose.Schema({
   postSubmissions: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'PostSubmission'
+  }],
+  problemSubmissions: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'ProblemSubmission'
   }]
 });
 

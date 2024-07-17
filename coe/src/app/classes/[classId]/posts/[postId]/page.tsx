@@ -1,10 +1,12 @@
-"use client";
-import { useRouter } from 'next/navigation';
+'use client'
+// pages/posts/[classId]/[postId].tsx
+
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
-import YourWorkBox from './YourWorkBox';
+import YourWorkBox from '../[postId]/YourWorkBox'; // Adjust path as per your project structure
+import { ClimbingBoxLoader } from 'react-spinners';
 
 interface Material {
   id: string;
@@ -12,50 +14,96 @@ interface Material {
   titleSlug: string;
   type: string;
   link: string;
-  status: string; // Adding status to Material interface
+  status: string;
 }
 
 interface Post {
   id: string;
   title: string;
   description: string;
-  content: string;
+  content: string; // Assuming content is part of the post
   date: string;
   dueDate: string;
   materials: Material[];
 }
 
-const formatDate = (isoDate: string | null): string => {
-  if (!isoDate) return ''; // Add a null check here
+interface User {
+  _id: string;
+}
 
-  const datePart = isoDate.split('T')[0];
+const formatDate = (isoDate: string | null): string => {
+  if (!isoDate) return '';
+
+  const datePart = new Date(isoDate).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
   return datePart;
 };
 
-const PostPage = ({ params }: { params: { classId: string, postId: string } }) => {
+const PostPage = ({ params }: { params: { classId: string; postId: string } }) => {
   const [post, setPost] = useState<Post | null>(null);
   const [className, setClassName] = useState<string>('');
   const [submissionStatus, setSubmissionStatus] = useState<string>('Assigned');
-  const router = useRouter();
-  const { classId, postId } = params;
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchPostData = async () => {
+    const fetchUserDetails = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/api/classes/${classId}/posts/${postId}`, {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          throw new Error('No token found');
+        }
+
+        const response = await fetch('http://localhost:5000/api/users/me', {
           method: 'GET',
           headers: {
+            'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
         });
 
         if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('User details fetched:', data);
+        setUser(data);
+      } catch (error) {
+        console.error('Error fetching user details:', error);
+        setUser(null);
+      }
+    };
+
+    const fetchPostData = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          throw new Error('No token found');
+        }
+
+        const response = await fetch(
+          `http://localhost:5000/api/classes/${params.classId}/posts/${params.postId}`,
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        console.log(params.classId, params.postId);
+
+        if (!response.ok) {
           throw new Error('Failed to fetch post data');
         }
 
-        const postData = await response.json();
-        console.log('Post Data:', postData); // Log the postData to check materials array
-
+        const postData: Post = await response.json();
         const formattedPost: Post = {
           ...postData,
           date: formatDate(postData.date),
@@ -66,19 +114,69 @@ const PostPage = ({ params }: { params: { classId: string, postId: string } }) =
         setClassName(postData.className);
       } catch (error) {
         console.error('Error fetching post data:', error);
-        router.push(`/classes/${classId}`);
+        setError('Failed to fetch post data');
+      } finally {
+        setLoading(false);
       }
     };
 
-    if (classId && postId) {
-      fetchPostData();
-    } else {
-      console.warn('classId or postId is undefined');
+    fetchUserDetails();
+    fetchPostData();
+  }, [params.classId, params.postId]);
+
+  const handleSubmit = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No token found');
+      }
+
+      const response = await fetch(
+        `http://localhost:5000/api/postsubmissions/${params.classId}/${params.postId}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            classId: params.classId,
+            postDetails: {
+              userId: user?._id,
+              problemId: 'problem_id_here',
+              code: 'User submitted code',
+              language: 'javascript',
+              status: 'submitted',
+            },
+            postId: params.postId,
+          }),
+        }
+      );
+
+      if (response.ok) {
+        setSubmissionStatus('Submitted');
+      } else {
+        console.error('Failed to submit post');
+      }
+    } catch (error) {
+      console.error('Error submitting post:', error);
     }
-  }, [classId, postId, router]);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <ClimbingBoxLoader color="#4A90E2" size={20} />
+      </div>
+    );
+  }
 
   if (!post) {
     return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
   }
 
   const handleMenuItemClick = (itemId: string) => {};
@@ -86,8 +184,6 @@ const PostPage = ({ params }: { params: { classId: string, postId: string } }) =
   const isDueDatePassed = new Date(post.dueDate) < new Date();
 
   const getIcon = (type: string) => {
-    if (!type) return '/icons/default.svg'; // Handle the case where type is undefined or null
-
     switch (type.toLowerCase()) {
       case 'pdf':
         return '/icons/pdf.svg';
@@ -101,7 +197,7 @@ const PostPage = ({ params }: { params: { classId: string, postId: string } }) =
   return (
     <div className="h-screen flex flex-col">
       <Navbar />
-      <div className="flex flex-1" style={{ marginTop: "56px" }}>
+      <div className="flex flex-1" style={{ marginTop: '56px' }}>
         <Sidebar onItemClick={handleMenuItemClick} />
         <div className="flex-1 p-4 bg-gray-100 overflow-y-auto flex">
           <div className="bg-white rounded-lg shadow-md p-6 mb-6 w-2/3 mr-4">
@@ -109,16 +205,25 @@ const PostPage = ({ params }: { params: { classId: string, postId: string } }) =
             <p className="text-gray-700 mb-4">{post.date}</p>
             <p className="text-gray-700 mb-4">{post.description}</p>
             <div className="text-gray-700 mb-4">
-              <strong>Due Date: </strong>{post.dueDate}
+              <strong>Due Date: </strong>
+              {post.dueDate}
             </div>
             <div className="text-gray-700 mb-4">
               <strong>Materials: </strong>
               <div className="grid grid-cols-1 gap-4">
                 {post.materials.map((material, index) => (
-                  <div key={index} className="bg-white rounded-lg shadow-md p-4 mb-4">
-                    <h3 className="text-xl font-semibold mb-2">{material.title}</h3>
+                  <div
+                    key={index}
+                    className="bg-white rounded-lg shadow-md p-4 mb-4"
+                  >
+                    <h3 className="text-xl font-semibold mb-2">
+                      {material.title}
+                    </h3>
                     <div className="flex justify-between items-center">
-                      <Link href={`/problems/${material.titleSlug}`} className="text-blue-500 hover:underline">
+                      <Link
+                        href={`/problems/${material.titleSlug}`}
+                        className="text-blue-500 hover:underline"
+                      >
                         View
                       </Link>
                       <span className="text-sm text-gray-500">
@@ -133,8 +238,21 @@ const PostPage = ({ params }: { params: { classId: string, postId: string } }) =
                 ))}
               </div>
             </div>
+            <button
+              onClick={handleSubmit}
+              className="bg-blue-500 text-white p-2 rounded"
+              disabled={submissionStatus === 'Submitted'}
+            >
+              Submit
+            </button>
           </div>
-          <YourWorkBox isDueDatePassed={isDueDatePassed} submissionStatus={submissionStatus} setSubmissionStatus={setSubmissionStatus} classId={classId} postId={postId} />
+          <YourWorkBox
+            isDueDatePassed={isDueDatePassed}
+            submissionStatus={submissionStatus}
+            setSubmissionStatus={setSubmissionStatus}
+            classId={params.classId}
+            postId={params.postId}
+          />
         </div>
       </div>
     </div>

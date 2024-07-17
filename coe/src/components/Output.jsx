@@ -1,15 +1,20 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button, Alert } from "react-bootstrap";
 import { executeCode } from "../api";
 import { useRouter } from 'next/navigation';
 
-const Output = ({ editorRef, language, classId, postId }) => {
+
+const Output = ({ editorRef, language, userId, problemId }) => {
   const [output, setOutput] = useState([]);
   const [isLoadingRun, setIsLoadingRun] = useState(false);
   const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
   const [isErrorRun, setIsErrorRun] = useState(false);
   const [isErrorSubmit, setIsErrorSubmit] = useState(false);
+  const [user, setUser] = useState(null);
+  const [problem, setProblem] = useState(null);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const [error, setError] = useState(null);
 
   const runCode = async () => {
     const sourceCode = editorRef.current?.getValue();
@@ -29,30 +34,89 @@ const Output = ({ editorRef, language, classId, postId }) => {
     }
   };
 
+  useEffect(() => {
+    const fetchUserDetails = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          throw new Error('No token found');
+        }
+
+        const response = await fetch('http://localhost:5000/api/users/me', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('From Output Component:', data);
+        setUser(data);
+      } catch (error) {
+        console.error('Error fetching user details:', error);
+        setUser(null);
+      }
+    };
+
+    const fetchProblemDetails = async () => {
+      if (!problemId) return;
+
+      setLoading(true);
+      try {
+        const response = await fetch(`/api/problems/${problemId}`);
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (!data || !data.question) {
+          throw new Error('Problem not found');
+        }
+
+        setProblem(data.question);
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserDetails();
+    fetchProblemDetails();
+  }, [problemId]);
+
   const submitCode = async () => {
     const sourceCode = editorRef.current?.getValue();
     if (!sourceCode) return;
-
+  
     try {
       setIsLoadingSubmit(true);
-      const response = await fetch(`http://localhost:5000/api/postSubmissions/${classId}/${postId}`, {
+      const response = await fetch(`http://localhost:5000/api/problemSubmission/submit`, {  // Make sure this URL is correct
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          problemId: postId,
+          userId: user._id,
+          problemId,
           code: sourceCode,
           language,
         }),
       });
-
+  
       if (!response.ok) {
         throw new Error('Failed to submit code');
       }
-
+  
       alert('Code submitted successfully!');
-      router.push(`/classes/${classId}/posts/${postId}`);
+      router.push(`/classes/${problemId}/posts/${problemId}`);
     } catch (error) {
       console.error("Error submitting code:", error);
       setIsErrorSubmit(true);
@@ -60,6 +124,7 @@ const Output = ({ editorRef, language, classId, postId }) => {
       setIsLoadingSubmit(false);
     }
   };
+  
 
   return (
     <div className="h-3/5">

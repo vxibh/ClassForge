@@ -11,14 +11,47 @@ export default function Dashboard() {
   const router = useRouter();
   const [isLoaded, setIsLoaded] = useState(false);
   const [isSignedIn, setIsSignedIn] = useState(false);
-  const [userDetails, setUserDetails] = useState(null);
+  const [userDetails, setUserDetails] = useState({ name: 'User' });
 
-  const checkLoggedInStatus = () => {
+  const fetchUserDetails = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      console.log('Token:', token);
+      if (!token) {
+        throw new Error('No token found');
+      }
+
+      const response = await fetch('http://localhost:5000/api/users/me', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('User details fetched:', data); // Log the response
+      return data;
+    } catch (error) {
+      console.error('Error fetching user details:', error);
+      return null;
+    }
+  };
+
+  const checkLoggedInStatus = async () => {
     const token = localStorage.getItem('token');
     if (token) {
       setIsSignedIn(true);
-      // Fetch user details here if needed
-      setUserDetails({ name: 'John Doe' }); // Placeholder, replace with actual user details
+      const userDetails = await fetchUserDetails();
+      if (userDetails) {
+        setUserDetails(userDetails);
+      } else {
+        setUserDetails({ name: 'User' }); // Fallback
+      }
     } else {
       setIsSignedIn(false);
       router.push('/');
@@ -53,7 +86,7 @@ export default function Dashboard() {
       <div className="flex flex-1" style={{ marginTop: "56px" }}>
         <Sidebar onItemClick={handleMenuItemClick} />
         <div className="flex-1 p-4 bg-gray-100 overflow-y-auto">
-          <div>Welcome, {userDetails?.name}</div>
+          <div>Welcome, {userDetails?.name || 'User'}</div>
           {/* Add your main content here */}
         </div>
         <AnnouncementBar />

@@ -4,24 +4,17 @@ const { Schema } = mongoose;
 const PostSubmissionSchema = new Schema({
   classId: {
     type: Schema.Types.ObjectId,
-    ref: 'Class',
+    ref: 'Class', // Reference to the Class model
+    required: true,
+  },
+  postDetails: {
+    type: Schema.Types.ObjectId,
+    ref: 'ProblemSubmission', // Reference to the ProblemSubmission model
     required: true,
   },
   postId: {
     type: Schema.Types.ObjectId,
-    ref: 'Post',
-    required: true,
-  },
-  problemId: {
-    type: String,
-    required: true,
-  },
-  code: {
-    type: String,
-    required: true,
-  },
-  language: {
-    type: String,
+    ref: 'Post', // Reference to the Post model
     required: true,
   },
   createdAt: {
