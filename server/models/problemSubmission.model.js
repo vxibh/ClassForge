@@ -29,6 +29,11 @@ const ProblemSubmissionSchema = new Schema({
     type: Date,
     default: Date.now,
   },
+  postId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Post',
+    required: false,
+  },
 });
 
 const ProblemSubmission = mongoose.model('ProblemSubmission', ProblemSubmissionSchema);

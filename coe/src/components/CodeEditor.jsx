@@ -4,7 +4,7 @@ import LanguageSelector from "./LanguageSelector";
 import Output from "./Output";
 import { CODE_SNIPPETS } from "../constants";
 
-const CodeEditor = ({ user, problemId }) => {
+const CodeEditor = ({ user, problemId,postId }) => {
   const editorRef = useRef();
   const [value, setValue] = useState("");
   const [language, setLanguage] = useState("javascript");
@@ -93,7 +93,7 @@ const CodeEditor = ({ user, problemId }) => {
         )}
       </div>
       <div className="h-2/5">
-        <Output editorRef={editorRef} language={language} userId={user} problemId={problemId} />
+        <Output editorRef={editorRef} language={language} userId={user} problemId={problemId} postId={postId} />
       </div>
     </div>
   );

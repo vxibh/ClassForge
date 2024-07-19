@@ -4,7 +4,7 @@ import { executeCode } from "../api";
 import { useRouter } from 'next/navigation';
 
 
-const Output = ({ editorRef, language, userId, problemId }) => {
+const Output = ({ editorRef, language, userId, problemId ,postId}) => {
   const [output, setOutput] = useState([]);
   const [isLoadingRun, setIsLoadingRun] = useState(false);
   const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
@@ -108,6 +108,8 @@ const Output = ({ editorRef, language, userId, problemId }) => {
           problemId: problemId,
           code: sourceCode,
           language: language,
+          status: "submitted",
+          postId: postId
         }),
       });
   
@@ -117,7 +119,7 @@ const Output = ({ editorRef, language, userId, problemId }) => {
       }
   
       alert('Code submitted successfully!');
-      router.push(`/`);
+      router.push(`/dashboard`);
     } catch (error) {
       console.error("Error submitting code:", error);
       setIsErrorSubmit(true);
