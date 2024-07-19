@@ -15,6 +15,7 @@ const materialsRouter = require('./Routes/materials');
 const postSubmissionsRouter = require('./Routes/postsubmissions');
 const todoRouter = require('./Routes/duepost');
 const userRouter = require('./Routes/users');
+const evaluateRouter = require('./Routes/evaluate');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -72,6 +73,8 @@ app.use('/api/classes', materialsRouter);
 app.use('/api/postSubmissions', postSubmissionsRouter);
 app.use('/api/to-do', todoRouter);
 app.use('/api/users', userRouter);
+app.use('/api/evaluate', evaluateRouter);
+
 
 // Example protected route
 app.get('/api/auth/me', authMiddleware, (req, res) => {

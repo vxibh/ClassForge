@@ -5,6 +5,7 @@ import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import Modal from '@/components/modal';
 import { ClimbingBoxLoader } from 'react-spinners';
+import { checkResultsUntilComplete, evaluateSubmissions, fetchProblemDetail, submitBatch } from '@/lib/evaluation';
 
 interface ProblemSubmission {
   _id: string;
@@ -29,6 +30,7 @@ const SubmissionPage = ({ params }: { params: { classId: string; postId: string;
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
+  const [evaluating, setEvaluating] = useState(false);
 
   useEffect(() => {
     const fetchPostSubmission = async () => {
@@ -90,6 +92,32 @@ const SubmissionPage = ({ params }: { params: { classId: string; postId: string;
 
   const handleMenuItemClick = (itemId: string) => {};
 
+  const handleEvaluateClick = async () => {
+    if (!postSubmission) return;
+
+    setEvaluating(true);
+
+    try {
+        const problemSubmissions = postSubmission.problemSubmissions;
+        
+        const response = await fetch(`http://localhost:5000/api/evaluate`, {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ problemSubmissions })
+      });      
+
+        // Assuming you might want to update the UI or state after evaluation
+        console.log('Evaluations complete');
+    } catch (error) {
+        console.error('Error evaluating submissions:', error);
+        setError('Failed to evaluate submissions');
+    } finally {
+        setEvaluating(false);
+    }
+};
+
   return (
     <div className="h-screen flex flex-col">
       <Navbar />
@@ -98,6 +126,13 @@ const SubmissionPage = ({ params }: { params: { classId: string; postId: string;
         <div className="flex-1 p-4 bg-gray-100 overflow-y-auto">
           <div className="bg-white rounded-lg shadow-md p-6 mb-6 w-full">
             <h2 className="text-2xl font-bold mb-2">Problem Submissions for Post Submission</h2>
+            <button
+              className="bg-blue-500 text-white py-2 px-4 rounded mb-4 float-right"
+              onClick={handleEvaluateClick}
+              disabled={evaluating}
+            >
+              {evaluating ? 'Evaluating...' : 'Evaluate'}
+            </button>
             <div className="grid grid-cols-1 gap-4">
               {postSubmission.problemSubmissions.map((problemSubmission, index) => (
                 <div key={index} className="bg-white rounded-lg shadow-md p-4 mb-4">
