@@ -1,45 +1,33 @@
+// models/postSubmission.model.js
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const PostSubmissionSchema = new Schema({
-  classId: {
+  userId: {
     type: Schema.Types.ObjectId,
-    ref: 'Class', // Reference to the Class model
+    ref: 'User',
     required: true,
   },
-  postDetails: {
-    userId: {
-      type: Schema.Types.ObjectId,
-      ref: 'User',
-      required: true,
-    },
-    problemId: {
-      type: String,
-      required: true,
-    },
-    code: {
-      type: String,
-      required: true,
-    },
-    language: {
-      type: String,
-      required: true,
-    },
-    status: {
-      type: String,
-      enum: ['submitted', 'solved', 'not solved'],
-      default: 'submitted',
-    },
+  classId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Class',
+    required: true,
   },
   postId: {
     type: Schema.Types.ObjectId,
-    ref: 'Post', // Reference to the Post model
+    ref: 'Post',
     required: true,
   },
+  problemSubmissions: [{
+    type: Schema.Types.ObjectId,
+    ref: 'ProblemSubmission',
+  }],
   createdAt: {
     type: Date,
     default: Date.now,
   },
 });
 
-module.exports = mongoose.model('PostSubmission', PostSubmissionSchema);
+const PostSubmission = mongoose.model('PostSubmission', PostSubmissionSchema);
+
+module.exports = PostSubmission;

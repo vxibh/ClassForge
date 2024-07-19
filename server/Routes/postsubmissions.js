@@ -1,88 +1,107 @@
+// routes/postSubmissions.js
 const express = require('express');
 const router = express.Router();
-const mongoose = require('mongoose');
-const PostSubmission = require('../models/postsubmission.model');
-const User = require('../models/user.model');
+const PostSubmission = require('../models/postSubmission.model');
 const ProblemSubmission = require('../models/problemSubmission.model');
-const { authMiddleware } = require('../middleware/authmiddleware');
+const User = require('../models/user.model');
 
-// Create a new submission
-router.post('/:classId/:postId', authMiddleware, async (req, res) => {
-  const { classId, postId } = req.params;
-  const { postDetails } = req.body;
-
+// Submit a post with all problem submissions
+router.post('/submit', async (req, res) => {
   try {
-    // Validate ObjectId
-    if (!mongoose.Types.ObjectId.isValid(classId) || !mongoose.Types.ObjectId.isValid(postId) || !mongoose.Types.ObjectId.isValid(postDetails.userId)) {
-      return res.status(400).json({ error: 'Invalid ObjectId' });
+    const { userId, classId, postId, problemSubmissions } = req.body;
+
+    // Log the received request body
+    console.log('Received request body:', req.body);
+
+    // Verify problemSubmissions is an array
+    if (!Array.isArray(problemSubmissions)) {
+      return res.status(400).json({ message: 'problemSubmissions must be an array' });
     }
 
-    // Create a new PostSubmission document
-    const newSubmission = new PostSubmission({
-      classId,
-      postDetails: {
-        userId: postDetails.userId,
-        problemId: postDetails.problemId,
-        code: postDetails.code,
-        language: postDetails.language,
-        status: 'submitted',
-      },
-      postId,
+    // Verify user existence
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Fetch all problem submissions by IDs
+    const fetchedProblemSubmissions = await ProblemSubmission.find({
+      _id: { $in: problemSubmissions },
+      userId: userId
     });
 
-    // Save the new submission
-    await newSubmission.save();
+    // Log the fetched problem submissions
+    console.log('Fetched problem submissions:', fetchedProblemSubmissions);
 
-    // Update user's postSubmissions array
-    const user = await User.findById(req.user.id);
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+    // Verify that all problem submissions belong to the user
+    if (fetchedProblemSubmissions.length !== problemSubmissions.length) {
+      return res.status(400).json({ message: 'Invalid problem submission IDs' });
     }
-    user.postSubmissions.push(newSubmission._id);
+
+    // Create a new post submission
+    const postSubmission = new PostSubmission({
+      userId,
+      classId,
+      postId,
+      problemSubmissions: fetchedProblemSubmissions.map(ps => ps._id),
+    });
+
+    await postSubmission.save();
+
+    // Add the post submission reference to the user
+    user.postSubmissions.push(postSubmission._id);
     await user.save();
 
-    res.status(201).json(newSubmission);
+    // Populate the problemSubmissions field before sending the response
+    const populatedPostSubmission = await PostSubmission.findById(postSubmission._id).populate('problemSubmissions');
+
+    res.status(201).json(populatedPostSubmission);
   } catch (error) {
-    console.error('Failed to create submission:', error);
-    res.status(500).json({ error: 'Failed to create submission' });
+    console.error('Error during post submission:', error);
+    res.status(500).json({ message: 'Server error', error });
   }
 });
 
-// Get a specific submission
-router.get('/:classId/:postId', authMiddleware, async (req, res) => {
-  const { classId, postId } = req.params;
-
+// Get all post submissions for a user
+router.get('/user/:userId', async (req, res) => {
   try {
-    // Validate ObjectId
-    if (!mongoose.Types.ObjectId.isValid(classId) || !mongoose.Types.ObjectId.isValid(postId)) {
-      return res.status(400).json({ error: 'Invalid ObjectId' });
-    }
-
-    // Find the submission based on classId, postId, and user ID
-    const submission = await PostSubmission.findOne({ classId, postId });
-    if (!submission) {
-      return res.status(404).json({ error: 'Submission not found' });
-    }
-
-    res.status(200).json(submission);
+    const { userId } = req.params;
+    const postSubmissions = await PostSubmission.find({ userId }).populate('problemSubmissions');
+    res.status(200).json(postSubmissions);
   } catch (error) {
-    console.error('Failed to fetch submission:', error);
-    res.status(500).json({ error: 'Failed to fetch submission' });
+    console.error('Error fetching user post submissions:', error);
+    res.status(500).json({ message: 'Server error', error });
   }
 });
 
-// Get all submissions for a specific user
-router.get('/', authMiddleware, async (req, res) => {
+// New route to get all post submissions by postId
+router.get('/post/:postId', async (req, res) => {
   try {
-    // Find the user and populate their postSubmissions
-    const user = await User.findById(req.user.id).populate('postSubmissions');
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    res.status(200).json(user.postSubmissions);
+    const { postId } = req.params;
+    const postSubmissions = await PostSubmission.find({ postId }).populate('problemSubmissions');
+    res.status(200).json(postSubmissions);
   } catch (error) {
-    console.error('Failed to fetch submissions:', error);
-    res.status(500).json({ error: 'Failed to fetch submissions' });
+    console.error('Error fetching post submissions by postId:', error);
+    res.status(500).json({ message: 'Server error', error });
+  }
+});
+
+// Route to get a post submission by its ID
+router.get('/:submissionId', async (req, res) => {
+  try {
+    const { submissionId } = req.params;
+
+    // Find the post submission by its ID
+    const postSubmission = await PostSubmission.findById(submissionId).populate('problemSubmissions');
+
+    if (!postSubmission) {
+      return res.status(404).json({ message: 'Post submission not found' });
+    }
+
+    res.json(postSubmission);
+  } catch (error) {
+    console.error('Error fetching post submission:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 

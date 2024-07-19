@@ -6,7 +6,7 @@ import dynamic from 'next/dynamic';
 import { useParams } from 'next/navigation';
 import Spinner from 'react-bootstrap/Spinner';
 import { ClimbingBoxLoader } from 'react-spinners';
-
+import { useSearchParams } from 'next/navigation'
 const CodeEditor = dynamic(() => import('@/components/CodeEditor'), { ssr: false });
 
 interface Problem {
@@ -20,12 +20,15 @@ interface User {
 }
 
 const ProblemPage = () => {
+  const searchParams = useSearchParams()
+ 
+  const postId = searchParams.get('postId')
   const { problemId } = useParams<{ problemId: string }>();
   const [problem, setProblem] = useState<Problem | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
-
+  console.log(postId)
   useEffect(() => {
     const fetchUserDetails = async () => {
       try {
@@ -116,6 +119,7 @@ const ProblemPage = () => {
             <CodeEditor
               user={user?._id}
               problemId={problemId}
+              postId = {postId}
             />
           )}
         </div>

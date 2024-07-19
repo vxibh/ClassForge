@@ -1,9 +1,9 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
-import YourWorkBox from '../[postId]/YourWorkBox'; // Adjust path as per your project structure
 import { ClimbingBoxLoader } from 'react-spinners';
 
 interface Material {
@@ -24,7 +24,20 @@ interface Post {
   dueDate: string;
   materials: Material[];
 }
-
+interface PostSubmission {
+    _id: string; // Assuming MongoDB ObjectId
+    postId: string; // ID of the post this submission belongs to
+    userId: string; // ID of the user who made this submission
+    createdAt: Date; // Date and time when the submission was created
+    problemSubmissions: ProblemSubmission[]; // Array of problem submissions within this post submission
+}
+interface ProblemSubmission {
+    _id: string; // Assuming MongoDB ObjectId
+    problemId: string; // ID of the problem within the post
+    userId: string; // ID of the user who submitted the solution
+    submission: string; // The solution submitted by the user
+    createdAt: Date; // Date and time when the problem submission was created
+}
 interface User {
   _id: string;
 }
@@ -39,7 +52,13 @@ const formatDate = (isoDate: string | null): string => {
   });
   return datePart;
 };
-
+interface UserDetail {
+    _id: string;
+    name: string;
+  }
+  
+  
+  
 const PostPage = ({ params }: { params: { classId: string; postId: string } }) => {
   const [post, setPost] = useState<Post | null>(null);
   const [className, setClassName] = useState<string>('');
@@ -47,8 +66,9 @@ const PostPage = ({ params }: { params: { classId: string; postId: string } }) =
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [problemSubmissions, setProblemSubmissions] = useState<any[]>([]); // Add state for problem submissions
-
+  const [postSubmissions, setPostSubmissions] = useState<PostSubmission[]>([]); // Add state for problem submissions
+  const [userDetails, setUserDetails] = useState<Record<string, UserDetail>>({});
+  const router = useRouter();
   useEffect(() => {
     const fetchUserDetails = async () => {
       try {
@@ -122,59 +142,59 @@ const PostPage = ({ params }: { params: { classId: string; postId: string } }) =
   }, [params.classId, params.postId]);
 
   useEffect(() => {
-    const fetchProblemSubmissions = async () => {
+    const fetchPostSubmission = async () => {
       if (!user) return;
-
+  
       try {
-        const response = await fetch(`http://localhost:5000/api/problemSubmission/${params.postId}/${user._id}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch problem submissions');
-        }
-        const data = await response.json();
-        setProblemSubmissions(data);
-      } catch (error) {
-        console.error('Error fetching problem submissions:', error);
-        setProblemSubmissions([]);
-      }
-    };
-
-    fetchProblemSubmissions();
-  }, [user, params.postId]);
-
-  const handleSubmit = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('No token found');
-      }
-
-      // Step 3: Submit the data to your backend
-      const response = await fetch(
-        `http://localhost:5000/api/postSubmissions/submit`,
-        {
-          method: 'POST',
+        const response = await fetch(`http://localhost:5000/api/postSubmissions/post/${params.postId}`, {
+          method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
           },
-          body: JSON.stringify({
-            userId: user?._id,
-            classId: params.classId,
-            postId: params.postId,
-            problemSubmissions: problemSubmissions.map(submission => submission._id), // Pass fetched IDs dynamically
-          }),
+        });
+  
+        if (!response.ok) {
+          throw new Error('Failed to fetch post submissions');
         }
-      );
-
-      if (response.ok) {
-        setSubmissionStatus('Submitted');
-      } else {
-        console.error('Failed to submit post');
+  
+        const data: PostSubmission[] = await response.json();
+        setPostSubmissions(data);
+  
+        // Fetch user details for each submission
+        const userIds = data.map(submission => submission.userId);
+        const uniqueUserIds = Array.from(new Set(userIds));
+  
+        const userDetailsResponse = await Promise.all(
+          uniqueUserIds.map(userId =>
+            fetch(`http://localhost:5000/api/users/${userId}`, {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+              },
+            }).then(res => res.json())
+          )
+        );
+  
+        const userDetailsMap: Record<string, UserDetail> = {};
+        userDetailsResponse.forEach(user => {
+          userDetailsMap[user._id] = user;
+        });
+  
+        setUserDetails(userDetailsMap);
+  
+      } catch (error) {
+        console.error('Error fetching post submissions:', error);
+        setPostSubmissions([]);
       }
-    } catch (error) {
-      console.error('Error submitting post:', error);
-    }
-  };
+    };
+  
+    fetchPostSubmission();
+  }, [user, params.postId]);
+
+  console.log(postSubmissions)
+  
 
   if (loading) {
     return (
@@ -191,35 +211,25 @@ const PostPage = ({ params }: { params: { classId: string; postId: string } }) =
   if (error) {
     return <div>Error: {error}</div>;
   }
+  const handleSubmissionClick = (submissionId: string)=>{
+    router.push(`/submissions/${params.classId}/${params.postId}/${submissionId}`)
+  }
 
   const handleMenuItemClick = (itemId: string) => {};
 
   const isDueDatePassed = new Date(post.dueDate) < new Date();
 
-  const getIcon = (type: string) => {
-    switch (type.toLowerCase()) {
-      case 'pdf':
-        return '/icons/pdf.svg';
-      case 'word':
-        return '/icons/word.svg';
-      default:
-        return '/icons/default.svg';
-    }
-  };
 
-  const checkMaterialStatus = (titleSlug: string) => {
-    const submission = problemSubmissions.find(submission => submission.problemId === titleSlug);
-    return submission ? submission.status === 'submitted' : false;
-  };
+
 
   return (
     <div className="h-screen flex flex-col">
       <Navbar />
       <div className="flex flex-1" style={{ marginTop: '56px' }}>
         <Sidebar onItemClick={handleMenuItemClick} />
-        <div className="flex-1 p-4 bg-gray-100 overflow-y-auto flex">
-          <div className="bg-white rounded-lg shadow-md p-6 mb-6 w-2/3 mr-4">
-            <h2 className="text-2xl font-bold mb-2">{post.title}</h2>
+        <div className="flex-1 p-4 bg-gray-100 overflow-y-auto">
+          <div className="bg-white rounded-lg shadow-md p-6 mb-6 w-full">
+            <h2 className="text-2xl font-bold mb-2">Submissions for {post.title}</h2>
             <p className="text-gray-700 mb-4">{post.date}</p>
             <p className="text-gray-700 mb-4">{post.description}</p>
             <div className="text-gray-700 mb-4">
@@ -227,54 +237,25 @@ const PostPage = ({ params }: { params: { classId: string; postId: string } }) =
               {post.dueDate}
             </div>
             <div className="text-gray-700 mb-4">
-              <strong>Materials: </strong>
+              <strong>All submissions: </strong>
               <div className="grid grid-cols-1 gap-4">
-                {post.materials.map((material, index) => (
-                  <div
-                    key={index}
-                    className="bg-white rounded-lg shadow-md p-4 mb-4"
-                  >
+                {postSubmissions.map((submission, index) => (
+                  <div key={index} className="bg-white rounded-lg shadow-md p-4 cursor-pointer hover:bg-gray-50" onClick={() => handleSubmissionClick(submission._id)}>
                     <h3 className="text-xl font-semibold mb-2">
-                      {material.title}
+                      Post submission by {userDetails[submission.userId]?.name || 'Unknown User'}
                     </h3>
-                    <div className="flex justify-between items-center">
-                      <Link
-                        href={`/problems/${material.titleSlug}?postId=${params.postId}`}
-                        className="text-blue-500 hover:underline"
-                      >
-                        View
-                      </Link>
-                      <span className="text-sm text-gray-500">
-                        {checkMaterialStatus(material.titleSlug) ? (
-                          <span className="text-green-500">&#10003; Solved</span>
-                        ) : (
-                          <span className="text-red-500">&#10007; Not Solved</span>
-                        )}
-                      </span>
-                    </div>
+                    <div className="text-gray-700 mb-2">Date of submission: {new Date(submission.createdAt).toLocaleDateString()}</div>
+                    <div className="text-gray-700">Number of problems solved: {submission.problemSubmissions.length}</div>
                   </div>
                 ))}
               </div>
             </div>
-            <button
-              onClick={handleSubmit}
-              className="bg-blue-500 text-white p-2 rounded"
-              disabled={submissionStatus === 'Submitted'}
-            >
-              Submit
-            </button>
           </div>
-          <YourWorkBox
-            isDueDatePassed={isDueDatePassed}
-            submissionStatus={submissionStatus}
-            setSubmissionStatus={setSubmissionStatus}
-            classId={params.classId}
-            postId={params.postId}
-          />
         </div>
       </div>
     </div>
   );
+  
 };
 
 export default PostPage;

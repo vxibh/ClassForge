@@ -6,22 +6,28 @@ const User = require('../models/user.model');
 // Submit a problem
 router.post('/submit', async (req, res) => {
   try {
-    const { userId, problemId, code, language } = req.body;
+    const { userId, problemId, code, language, postId } = req.body;
+
+    // Check if userId exists
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
+    // Create new ProblemSubmission
     const submission = new ProblemSubmission({
       userId,
       problemId,
       code,
       language,
-      status: 'submitted'
+      status: 'submitted',
+      postId: postId || null, // Set postId if provided, otherwise set to null
     });
 
+    // Save ProblemSubmission
     await submission.save();
 
+    // Update user's problemSubmissions array
     user.problemSubmissions.push(submission._id);
     await user.save();
 
@@ -39,6 +45,22 @@ router.get('/user/:userId', async (req, res) => {
     res.status(200).json(submissions);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
+  }
+});
+
+router.get('/:postId/:userId', async (req, res) => {
+  const { postId, userId } = req.params;
+
+  try {
+    const submissions = await ProblemSubmission.find({
+      postId,
+      userId,
+    });
+
+    res.status(200).json(submissions);
+  } catch (error) {
+    console.error('Error fetching problem submissions:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
