@@ -1,26 +1,54 @@
-// AnnouncementBar.tsx
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 
-import React from 'react';
+interface Announcement {
+  text: string;
+  className: string;
+  time: string;
+}
 
-const AnnouncementBar: React.FC = () => {
-  const announcements = [
-    { text: 'New assignment posted: "Array Manipulation"', className: 'Class 1', time: '15 mins ago' },
-    { text: 'Discussion on "Graph Theory" started', className: 'Class 2', time: '30 mins ago' },
-    { text: 'Assignment due date extended', className: 'Class 3', time: '1 hour ago' },
-    { text: 'New problem added: "Binary Search Tree"', className: 'Class 1', time: '2 hours ago' },
-    { text: 'Weekly roundup meeting', className: 'Class 4', time: '3 hours ago' },
-    { text: 'Midterm exam results announced', className: 'Class 2', time: '5 hours ago' }
-  ];
+const AnnouncementBar: React.FunctionComponent = () => {
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+
+  useEffect(() => {
+    const fetchAnnouncements = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/announcements', {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}` // Assuming you store the token in localStorage
+          }
+        });
+        const data = await response.json()
+        setAnnouncements(data);
+      } catch (error) {
+        console.error('Error fetching announcements:', error);
+      }
+    };
+
+    fetchAnnouncements();
+  }, []);
+
+  const formatTime = (timeString: string) => {
+    const time = new Date(timeString);
+    const now = new Date();
+    const differenceInHours = (now.getTime() - time.getTime()) / 1000 / 60 / 60;
+
+    if (differenceInHours < 24) {
+      return time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } else {
+      return time.toLocaleDateString();
+    }
+  };
 
   return (
-    <div className="w-64 h-full bg-gray-100 p-4" style={{borderLeft: "solid #0000004d 0.5px"}}>
+    <div className="w-64 h-full bg-gray-100 p-4" style={{ borderLeft: "solid #0000004d 0.5px" }}>
       <h2 className="text-xl font-bold mb-4">Announcements</h2>
       <ul>
         {announcements.map((announcement, index) => (
           <li key={index} className="mb-4 p-4 bg-white rounded shadow">
             <p className="text-sm">{announcement.text}</p>
             <p className="text-xs text-gray-500">{announcement.className}</p>
-            <p className="text-xs text-gray-400">{announcement.time}</p>
+            <p className="text-xs text-gray-400">{formatTime(announcement.time)}</p>
           </li>
         ))}
       </ul>

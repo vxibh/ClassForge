@@ -72,10 +72,6 @@ export default function Dashboard() {
     };
   }, [router]);
 
-  if (!isLoaded) {
-    return <div> <ClimbingBoxLoader /> </div>;
-  }
-
   const handleMenuItemClick = (itemId) => {
     // Implement logic to change content based on the clicked menu item if needed
   };

@@ -26,8 +26,12 @@ const PostSubmissionSchema = new Schema({
     type: Date,
     default: Date.now,
   },
+  totalScore: {
+    type: Number,
+    required: false,
+    default: 0, // Default value, can be adjusted based on your requirements
+  },
 });
 
-const PostSubmission = mongoose.model('PostSubmission', PostSubmissionSchema);
+module.exports = mongoose.models.PostSubmission || mongoose.model('PostSubmission', PostSubmissionSchema);
 
-module.exports = PostSubmission;

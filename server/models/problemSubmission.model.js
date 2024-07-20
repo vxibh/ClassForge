@@ -34,8 +34,20 @@ const ProblemSubmissionSchema = new Schema({
     ref: 'Post',
     required: false,
   },
+  score: {
+    type: Number,
+    required: false, // Set to true if you want to make it mandatory
+    default: 0, // Default score value, can be adjusted based on your requirements
+  },
+  evaluated: {  // New field
+    type: Boolean,
+    default: false,
+  },
+  totalNumberOfTestCases: { // New field
+    type: Number,
+    required: false, // Set to true if you want to make it mandatory
+    default: 0, // Default value, can be adjusted based on your requirements
+  },
 });
 
-const ProblemSubmission = mongoose.model('ProblemSubmission', ProblemSubmissionSchema);
-
-module.exports = ProblemSubmission;
+module.exports = mongoose.models.ProblemSubmission || mongoose.model('ProblemSubmission', ProblemSubmissionSchema);

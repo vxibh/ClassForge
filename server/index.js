@@ -16,7 +16,7 @@ const postSubmissionsRouter = require('./Routes/postsubmissions');
 const todoRouter = require('./Routes/duepost');
 const userRouter = require('./Routes/users');
 const evaluateRouter = require('./Routes/evaluate');
-
+const announcementRouter = require('./Routes/announcements');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -74,6 +74,7 @@ app.use('/api/postSubmissions', postSubmissionsRouter);
 app.use('/api/to-do', todoRouter);
 app.use('/api/users', userRouter);
 app.use('/api/evaluate', evaluateRouter);
+app.use('/api/announcements', announcementRouter);
 
 
 // Example protected route

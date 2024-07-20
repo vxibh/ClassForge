@@ -5,10 +5,12 @@ import Sidebar from '@/components/Sidebar';
 import AnnouncementBar from '@/components/AnnouncementBar';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { HashLoader } from 'react-spinners';
 
 const EnrolledClassesPage = () => {
   const [activeItem, setActiveItem] = useState<string>('classes');
   const [classesList, setClassesList] = useState([]);
+  const [loading, setLoading] = useState<boolean>(true);
   const router = useRouter();
 
   const handleMenuItemClick = (itemId: string) => {
@@ -22,7 +24,7 @@ const EnrolledClassesPage = () => {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`, // Include the authorization header
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
       });
       const data = await response.json();
@@ -34,9 +36,13 @@ const EnrolledClassesPage = () => {
       }
     } catch (error) {
       console.error('Error fetching classes:', error);
+    } finally {
+      // Simulate additional loading time
+      setTimeout(() => {
+        setLoading(false);
+      }, 1200); // Adjust the delay time as needed
     }
   };
-  
 
   useEffect(() => {
     setActiveItem('classes');
@@ -44,8 +50,17 @@ const EnrolledClassesPage = () => {
   }, []);
 
   const handleClassClick = (classId: string) => {
+    setLoading(true);
     router.push(`/classes/${classId}`);
   };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <HashLoader color="#fc03c2" loading={loading} size={40} aria-label="Loading Spinner" data-testid="loader" />
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen flex flex-col">
@@ -74,6 +89,7 @@ const EnrolledClassesPage = () => {
         <AnnouncementBar />
       </div>
     </div>
-  );  
+  );
 }
+
 export default EnrolledClassesPage;

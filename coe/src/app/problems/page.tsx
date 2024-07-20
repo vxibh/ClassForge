@@ -5,7 +5,7 @@ import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import AnnouncementBar from '@/components/AnnouncementBar';
 import { useRouter } from 'next/navigation';
-import Loader from '@/components/Loader';
+import { HashLoader } from 'react-spinners';
 
 const ProblemsPage = () => {
   const [problems, setProblems] = useState([]);
@@ -19,6 +19,7 @@ const ProblemsPage = () => {
   };
 
   const handleProblemClick = (problemId: string) => {
+    setLoading(true);
     router.push(`/problems/${problemId}`);
   };
 
@@ -27,13 +28,13 @@ const ProblemsPage = () => {
       try {
         const response = await fetch('/api/problems');
         if (!response.ok) {
-          throw new Error('HTTP error! status: ${response.status}');
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
         setProblems(data);
-        setLoading(false);
       } catch (error) {
         setError(error.message);
+      } finally {
         setLoading(false);
       }
     };
@@ -41,8 +42,17 @@ const ProblemsPage = () => {
     fetchProblems();
   }, []);
 
-  if (loading) return <p><Loader/></p>;
-  if (error) return <p>Error: {error}</p>;
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <HashLoader color="#fc03c2" loading={loading} size={40} aria-label="Loading Spinner" data-testid="loader" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return <p>Error: {error}</p>;
+  }
 
   return (
     <div className="h-screen flex flex-col">
@@ -54,8 +64,6 @@ const ProblemsPage = () => {
           <ul>
             {problems.map(problem => (
               <li key={problem.titleSlug} className="mb-8">
-                                
-
                 <h2 className="text-xl font-bold">{problem.title}</h2>
                 <div
                   className="mt-4 text-gray-800"

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import YourWorkBox from '../[postId]/YourWorkBox'; // Adjust path as per your project structure
-import { ClimbingBoxLoader } from 'react-spinners';
+import { ClimbingBoxLoader, HashLoader } from 'react-spinners';
 
 interface Material {
   id: string;
@@ -179,13 +179,16 @@ const PostPage = ({ params }: { params: { classId: string; postId: string } }) =
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <ClimbingBoxLoader color="#4A90E2" size={20} />
+        <HashLoader color="#fc03c2" loading={loading} size={40} aria-label="Loading Spinner" data-testid="loader" />
       </div>
     );
   }
 
   if (!post) {
-    return <div>Loading...</div>;
+    return (
+    <div className="flex justify-center items-center h-screen">
+      <HashLoader  color="#fc03c2" loading={loading} size={40} aria-label="Loading Spinner" data-testid="loader" />
+    </div>)
   }
 
   if (error) {

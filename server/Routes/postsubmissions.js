@@ -38,12 +38,16 @@ router.post('/submit', async (req, res) => {
       return res.status(400).json({ message: 'Invalid problem submission IDs' });
     }
 
+    const totalScore = fetchedProblemSubmissions.reduce((sum, ps) => sum + ps.score, 0);
+
     // Create a new post submission
     const postSubmission = new PostSubmission({
       userId,
       classId,
       postId,
       problemSubmissions: fetchedProblemSubmissions.map(ps => ps._id),
+      totalScore,
+
     });
 
     await postSubmission.save();

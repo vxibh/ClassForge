@@ -6,8 +6,9 @@ import Sidebar from '@/components/Sidebar';
 import ClassInfoCard from '@/components/ClassInfoCard';
 import PostList from '@/components/PostList';
 import ProblemSetOverlay from '@/components/ProblemSetOverlay';
-import AddPostForm from '@/components/AddPostForm'; // Import the AddPostForm component
-import { Post, ClassData, User, Problem } from '@/types'; // Make sure to import types as needed
+import AddPostForm from '@/components/AddPostForm';
+import { Post, ClassData, User, Problem } from '@/types';
+import { HashLoader } from 'react-spinners';
 
 const formatDate = (isoDate: string): string => {
   const datePart = isoDate.split('T')[0];
@@ -19,6 +20,7 @@ const ClassPage = ({ params }: { params: { classId: string } }) => {
   const [classData, setClassData] = useState<ClassData | null>(null);
   const [isTeacher, setIsTeacher] = useState<boolean>(false);
   const [showAddPostForm, setShowAddPostForm] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [showProblemSetOverlay, setShowProblemSetOverlay] = useState<boolean>(false);
   const [newPost, setNewPost] = useState<Post>({
     _id: '',
@@ -34,6 +36,7 @@ const ClassPage = ({ params }: { params: { classId: string } }) => {
   const { classId } = params;
 
   const fetchClassData = async () => {
+    setLoading(true);
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(`http://localhost:5000/api/classes/${classId}`, {
@@ -51,15 +54,20 @@ const ClassPage = ({ params }: { params: { classId: string } }) => {
         }));
         setClassData({ ...data, posts: formattedPosts });
       } else {
-        router.push('/enrolled');
+        setTimeout(() => {
+          router.push('/enrolled');
+        }, 2500); // Delay for 1 second
       }
     } catch (error) {
       console.error('Error fetching class data:', error);
       router.push('/enrolled');
+    } finally {
+      setLoading(false);
     }
   };
 
   const fetchUserData = async () => {
+    setLoading(true);
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(`http://localhost:5000/api/users/me`, {
@@ -73,6 +81,9 @@ const ClassPage = ({ params }: { params: { classId: string } }) => {
       setIsTeacher(data.isTeacher);
     } catch (error) {
       console.error('Error fetching user data:', error);
+    } finally {
+      
+      setLoading(false);
     }
   };
 
@@ -81,7 +92,23 @@ const ClassPage = ({ params }: { params: { classId: string } }) => {
   };
 
   const handlePostClick = (postId: string) => {
-    router.push(`/classes/${classId}/posts/${postId}`);
+    setTimeout(() => {
+      {loading && (
+        <div className="absolute inset-0 flex justify-center items-center bg-gray-50 bg-opacity-75 z-50">
+          <div className="sweet-loading">
+            <HashLoader
+              color="#fc03c2"
+              loading={loading}
+              size={40}
+              aria-label="Loading Spinner"
+              data-testid="loader"
+            />
+          </div>
+        </div>
+      )}
+      router.push(`/classes/${classId}/posts/${postId}`);
+    }, 2000); 
+    
   };
 
   const handleCloseForm = () => {
@@ -89,6 +116,7 @@ const ClassPage = ({ params }: { params: { classId: string } }) => {
   };
 
   const handlePostDelete = async (postId: string) => {
+    setLoading(true);
     try {
       const response = await fetch(`http://localhost:5000/api/classes/${classId}/posts/${postId}`, {
         method: 'DELETE',
@@ -104,6 +132,8 @@ const ClassPage = ({ params }: { params: { classId: string } }) => {
       }
     } catch (error) {
       console.error('Error deleting post:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -115,6 +145,7 @@ const ClassPage = ({ params }: { params: { classId: string } }) => {
   };
 
   const handlePostFormSubmit = async (postData) => {
+    setLoading(true);
     try {
       const formData = new FormData();
       formData.append('title', postData.title);
@@ -122,20 +153,18 @@ const ClassPage = ({ params }: { params: { classId: string } }) => {
       formData.append('content', postData.content);
       formData.append('date', postData.date);
       formData.append('dueDate', postData.dueDate);
-  
-      // Append the file to the form data if it exists
+
       if (postData.file) {
         formData.append('file', postData.file);
       }
-  
-      // Append materials as a JSON string
+
       formData.append('materials', JSON.stringify(postData.materials));
-  
+
       const response = await fetch(`http://localhost:5000/api/classes/${classId}/posts`, {
         method: 'POST',
         body: formData,
       });
-  
+
       if (response.ok) {
         setNewPost({
           _id: '',
@@ -154,15 +183,23 @@ const ClassPage = ({ params }: { params: { classId: string } }) => {
       }
     } catch (error) {
       console.error('Error creating post:', error);
+    } finally {
+      setLoading(false);
     }
   };
-  
-  
 
   useEffect(() => {
     fetchClassData();
     fetchUserData();
   }, [classId, router]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <HashLoader color="#fc03c2" loading={loading} size={40} aria-label="Loading Spinner" data-testid="loader" />
+      </div>
+    );
+  }
 
   if (!classData) {
     return <div>Loading...</div>;

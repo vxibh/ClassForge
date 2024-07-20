@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
-import { ClimbingBoxLoader } from 'react-spinners';
+import { ClimbingBoxLoader, HashLoader } from 'react-spinners';
 
 interface Material {
   id: string;
@@ -199,28 +199,33 @@ const PostPage = ({ params }: { params: { classId: string; postId: string } }) =
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <ClimbingBoxLoader color="#4A90E2" size={20} />
+        <HashLoader color="#fc03c2" size={40} aria-label="Loading Spinner" />
       </div>
     );
   }
 
   if (!post) {
-    return <div>Loading...</div>;
+    return (
+        <div className="flex justify-center items-center h-screen">
+          <HashLoader color="#fc03c2" size={40} aria-label="Loading Spinner" />
+        </div>
+      );
   }
 
   if (error) {
     return <div>Error: {error}</div>;
   }
   const handleSubmissionClick = (submissionId: string)=>{
-    router.push(`/submissions/${params.classId}/${params.postId}/${submissionId}`)
+    setLoading(true); // Set loading true before route change
+    setTimeout(() => {
+      router.push(`/submissions/${params.classId}/${params.postId}/${submissionId}`);
+      setLoading(false); // Set loading false after route change
+    }, 3000);
   }
 
   const handleMenuItemClick = (itemId: string) => {};
 
   const isDueDatePassed = new Date(post.dueDate) < new Date();
-
-
-
 
   return (
     <div className="h-screen flex flex-col">

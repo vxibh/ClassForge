@@ -4,9 +4,9 @@ import { useEffect, useState } from 'react';
 import Navbar from '@/components/Navbar';
 import dynamic from 'next/dynamic';
 import { useParams } from 'next/navigation';
-import Spinner from 'react-bootstrap/Spinner';
-import { ClimbingBoxLoader } from 'react-spinners';
-import { useSearchParams } from 'next/navigation'
+import { HashLoader } from 'react-spinners';
+import { useSearchParams } from 'next/navigation';
+
 const CodeEditor = dynamic(() => import('@/components/CodeEditor'), { ssr: false });
 
 interface Problem {
@@ -20,15 +20,14 @@ interface User {
 }
 
 const ProblemPage = () => {
-  const searchParams = useSearchParams()
- 
-  const postId = searchParams.get('postId')
+  const searchParams = useSearchParams();
+  const postId = searchParams.get('postId');
   const { problemId } = useParams<{ problemId: string }>();
   const [problem, setProblem] = useState<Problem | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
-  console.log(postId)
+
   useEffect(() => {
     const fetchUserDetails = async () => {
       try {
@@ -50,7 +49,6 @@ const ProblemPage = () => {
         }
 
         const data = await response.json();
-        console.log('User details fetched:', data);
         setUser(data);
       } catch (error) {
         console.error('Error fetching user details:', error);
@@ -89,10 +87,8 @@ const ProblemPage = () => {
 
   if (loading) {
     return (
-      <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
-        <Spinner animation="border" role="status">
-          <span className="sr-only"><ClimbingBoxLoader /></span>
-        </Spinner>
+      <div className="flex justify-center items-center h-screen">
+        <HashLoader color="#fc03c2" loading={loading} size={40} aria-label="Loading Spinner" data-testid="loader" />
       </div>
     );
   }
@@ -119,7 +115,7 @@ const ProblemPage = () => {
             <CodeEditor
               user={user?._id}
               problemId={problemId}
-              postId = {postId}
+              postId={postId}
             />
           )}
         </div>

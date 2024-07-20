@@ -56,7 +56,7 @@ const Navbar = () => {
             <FaCaretDown />
           </button>
           {dropdownOpen && (
-            <div className="absolute right-0 mt-2 mr-1 w-20 bg-white rounded-md shadow-lg py-1 z-20">
+            <div className="absolute right-0 mt-2 w-20 bg-white rounded-md shadow-lg py-1 z-20">
               <LogoutButton />
             </div>
           )}

@@ -1,29 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { ClimbingBoxLoader } from 'react-spinners';
+// components/Loading.tsx
+import { HashLoader } from 'react-spinners';
 
-const Loader = () => {
-  const [loading, setLoading] = useState(true);
+const Loading = () => (
+  <div className="flex justify-center items-center h-screen">
+    <HashLoader color="#fc03c2" size={40} aria-label="Loading Spinner" />
+  </div>
+);
 
-  useEffect(() => {
-    // Set the duration of the loader in milliseconds
-    const loaderDuration = 3000; // 3 seconds
-
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, loaderDuration);
-
-    return () => clearTimeout(timer); // Cleanup the timer on component unmount
-  }, []);
-
-  return (
-    <div className="loader-container">
-      {loading ? (
-        <ClimbingBoxLoader color="#36d7b7" size={15} />
-      ) : (
-        <div>Content goes here</div>
-      )}
-    </div>
-  );
-};
-
-export default Loader;
+export default Loading;
