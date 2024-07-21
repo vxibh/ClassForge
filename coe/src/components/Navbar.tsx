@@ -1,16 +1,53 @@
-// components/Navbar.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { FaRegUserCircle, FaCaretDown } from 'react-icons/fa';
 import LogoutButton from './LogoutButton'; // Adjust the import path as necessary
+import axios from 'axios';
 
 const Navbar = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [isTeacher, setIsTeacher] = useState(false);
+  const [data, setData] = useState<{ name: string }>({ name: '' });
 
+  useEffect(() => {
+    const fetchUserDetails = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        console.log('Token:', token);
+        if (!token) {
+          throw new Error('No token found');
+        }
+  
+        const response = await fetch('http://localhost:5000/api/users/me', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+  
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+  
+        const data = await response.json();
+        console.log('User details fetched:', data); // Log the response
+        setData({ name: data.name });        
+        // Set the isTeacher state based on the fetched user data
+        setIsTeacher(data.isTeacher);
+      } catch (error) {
+        console.error('Error fetching user details:', error);
+      }
+    };
+
+    fetchUserDetails();
+  }, []);
+
+  
   return (
-    <nav className="w-full h-16 bg-gray-700 fixed top-0 left-0 right-0 bottom-5">
-      <div className="flex justify-between px-4 mx-auto lg:max-w-7xl md:items-center md:flex md:px-8">
-        <div className="flex items-center" style={{ marginTop: '4px' }}>
+    <nav className="w-full h-16 bg-gray-700 fixed top-0 left-0 right-0 bottom-0">
+      <div className="flex justify-between mx-auto lg:max-w-7xl md:items-center md:flex md:px-8">
+        <div className="flex items-center" style={{ }}>
           <Link href="/" legacyBehavior>
             <h2 className="text-2xl text-red-500 font-bold cursor-pointer">ClassForge</h2>
           </Link>
@@ -21,9 +58,11 @@ const Navbar = () => {
             <li className="text-xl text-white py-2 hover:bg-purple-600 md:hover:text-purple-600 md:hover:bg-transparent">
               <Link href="/to-do">To-Do</Link>
             </li>
-            <li className="text-xl text-white py-2 hover:bg-purple-600 md:hover:text-purple-600 md:hover:bg-transparent">
-              <Link href="/submissions">Submissions</Link>
-            </li>
+            {isTeacher && (
+              <li className="text-xl text-white py-2 hover:bg-purple-600 md:hover:text-purple-600 md:hover:bg-transparent">
+                <Link href="/submissions">Submissions</Link>
+              </li>
+            )}
             <li className="text-xl text-white py-2 hover:bg-purple-600 md:hover:text-purple-600 md:hover:bg-transparent">
               <Link href="#projects">Discussion</Link>
             </li>
@@ -44,15 +83,14 @@ const Navbar = () => {
             </div>
           </form>
         </div>
-        <div className="relative" style={{display:"flex"}}>
-          
-        <Link href="/class/join" legacyBehavior>
-        <span className="text-2xl text-white p-5 hover:bg-purple-600 md:hover:text-purple-600 md:hover:bg-transparent cursor-pointer">+</span></Link>
-
+        <div className="relative" style={{ display: 'flex' }}>
+          <Link href="/class/join" legacyBehavior>
+            <span className="text-2xl text-white p-5 hover:bg-purple-600 md:hover:text-purple-600 md:hover:bg-transparent cursor-pointer">+</span>
+          </Link>
 
           <button onClick={() => setDropdownOpen(!dropdownOpen)} className="flex items-center text-white focus:outline-none">
-            <FaRegUserCircle className="mt-1 mr-1" />
-            <span className="mt-1">User</span>
+            <FaRegUserCircle className=" mr-1" />
+            <span className="ml-2 mr-2">{data.name}</span>
             <FaCaretDown />
           </button>
           {dropdownOpen && (

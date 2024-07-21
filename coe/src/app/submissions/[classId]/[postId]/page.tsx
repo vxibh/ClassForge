@@ -159,8 +159,19 @@ const PostPage = ({ params }: { params: { classId: string; postId: string } }) =
         }
   
         const data: PostSubmission[] = await response.json();
-        setPostSubmissions(data);
   
+        const updatedData = data.map(submission => {
+          const totalScore = submission.problemSubmissions.reduce((acc, problem) => acc + problem.score, 0);
+          const totalNumOfTestCases = submission.problemSubmissions.reduce((acc, problem) => acc + problem.totalNumberOfTestCases, 0);
+          return {
+            ...submission,
+            totalScore,
+            totalNumOfTestCases,
+          };
+        });
+
+        setPostSubmissions(updatedData);
+
         // Fetch user details for each submission
         const userIds = data.map(submission => submission.userId);
         const uniqueUserIds = Array.from(new Set(userIds));
@@ -203,6 +214,7 @@ const PostPage = ({ params }: { params: { classId: string; postId: string } }) =
       </div>
     );
   }
+
 
   if (!post) {
     return (
@@ -250,6 +262,8 @@ const PostPage = ({ params }: { params: { classId: string; postId: string } }) =
                       Post submission by {userDetails[submission.userId]?.name || 'Unknown User'}
                     </h3>
                     <div className="text-gray-700 mb-2">Date of submission: {new Date(submission.createdAt).toLocaleDateString()}</div>
+                    <div className="text-gray-700 mb-2">Total Score: {submission.totalScore}/{submission.totalNumOfTestCases}</div>
+
                     <div className="text-gray-700">Number of problems solved: {submission.problemSubmissions.length}</div>
                   </div>
                 ))}

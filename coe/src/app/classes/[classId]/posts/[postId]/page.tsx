@@ -5,6 +5,7 @@ import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import YourWorkBox from '../[postId]/YourWorkBox'; // Adjust path as per your project structure
 import { ClimbingBoxLoader, HashLoader } from 'react-spinners';
+import { toast } from 'react-toastify';
 
 interface Material {
   id: string;
@@ -168,8 +169,10 @@ const PostPage = ({ params }: { params: { classId: string; postId: string } }) =
 
       if (response.ok) {
         setSubmissionStatus('Submitted');
+        toast.success('Post submitted successfully');
       } else {
         console.error('Failed to submit post');
+        toast.error('Failed to submit post');
       }
     } catch (error) {
       console.error('Error submitting post:', error);

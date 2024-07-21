@@ -192,7 +192,7 @@ const SubmissionPage = ({ params }: { params: { classId: string; postId: string;
                       Date of submission: {new Date(problemSubmission.createdAt).toLocaleDateString()}
                     </div>
                     <div className="text-gray-700 mb-2">
-                      <strong>Score:</strong> {problemSubmission.score !== undefined ? problemSubmission.score : 'Not evaluated yet'}
+                      <strong>Score:</strong> {problemSubmission.score !== undefined ? problemSubmission.score : 'Not evaluated yet'} / {problemSubmission.totalNumberOfTestCases !== undefined ? problemSubmission.totalNumberOfTestCases : 'Not evaluated yet'}
                     </div>
                     {result && (
                       <div className="text-gray-700 mb-2">

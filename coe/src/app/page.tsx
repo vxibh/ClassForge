@@ -57,6 +57,7 @@ export default function Home() {
     setTimeout(() => {
       router.push('/');
     }, 1500); // Delay for 1 second
+    setLoading(false);
   };
 
   return (
