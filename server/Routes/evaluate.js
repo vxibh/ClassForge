@@ -62,15 +62,16 @@ function extractExpectedOutput(htmlContent) {
     return outputs;
 }
 
-// Function to remove all whitespace from a string
-function removeAllWhitespace(str) {
-    return str.replace(/[\s\uFEFF\xA0]+/g, ''); // Remove all whitespace characters including tabs, newlines, and Unicode invisible characters
+function removeAllSpecialCharsAndLowercase(str) {
+  return str
+      .replace(/[\[\](),.\s\u200B-\u200D\uFEFF\u00A0\u1680\u180E\u2000-\u200A\u202F\u205F\u3000]+/g, '')
+      .toLowerCase();
 }
 
 // Function to compare actual and expected outputs
 function compareOutputs(expected, actual) {
-    const cleanedExpected = removeAllWhitespace(expected);
-    const cleanedActual = removeAllWhitespace(actual);
+    const cleanedExpected = removeAllSpecialCharsAndLowercase(expected);
+    const cleanedActual = removeAllSpecialCharsAndLowercase(actual);
     return cleanedExpected === cleanedActual;
 }
 
@@ -91,7 +92,7 @@ async function fetchResults(tokens) {
         const response = await fetch(url, { headers });
         if (!response.ok) throw new Error(`Fetch result failed with status ${response.status}`);
         const result = await response.json();
-        console.log('Fetch result response:', result);
+        console.log('Fetch result response:', result, result.status);
         return result;
     } catch (error) {
         console.error('Fetch result error:', error);
@@ -216,11 +217,13 @@ router.post('/', async (req, res) => {
         const expectedOutput = flattenedSubmissions[index].expected_output;
         const actualOutput = submissionResult?.stdout?.trim() || 'N/A';
   
-        const cleanedExpected = removeAllWhitespace(expectedOutput);
-        const cleanedActual = removeAllWhitespace(actualOutput);
+        const cleanedExpected = removeAllSpecialCharsAndLowercase(expectedOutput);
+        const cleanedActual = removeAllSpecialCharsAndLowercase(actualOutput);
   
         const isMatch = compareOutputs(cleanedExpected, cleanedActual);
   
+        console.log('Expected:', cleanedExpected);
+        console.log('Actual:', cleanedActual);
         return {
           ...submissionResult,
           passed: isMatch ? 1 : 0,
@@ -284,6 +287,4 @@ router.post('/', async (req, res) => {
     }
   });
   
-
-
 module.exports = router

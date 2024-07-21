@@ -132,6 +132,7 @@ const ClassPage = ({ params }: { params: { classId: string } }) => {
   return (
     <div className="h-screen flex flex-col">
       <Navbar />
+      {console.log(classData)}
       <div className="flex flex-1" style={{ marginTop: '56px' }}>
         <Sidebar onItemClick={handleMenuItemClick} />
         <div className="flex-1 p-4 bg-gray-100 overflow-y-auto">
