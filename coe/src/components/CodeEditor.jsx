@@ -64,7 +64,7 @@ const CodeEditor = ({ onChange, language, code, theme, user, problemId,postId })
         <Editor
           height="100%"
           width="100%"
-          language={language || "javascript"}
+          language={language || "cpp"}
           value={value}
           theme={theme}
           defaultValue="// some comment"

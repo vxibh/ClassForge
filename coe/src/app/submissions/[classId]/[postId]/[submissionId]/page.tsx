@@ -6,7 +6,7 @@ import Sidebar from '@/components/Sidebar';
 import Modal from '@/components/modal';
 import { ClimbingBoxLoader, HashLoader } from 'react-spinners';
 import { toast } from 'react-toastify';
-
+import { ToastContainer } from 'react-toastify';
 interface ProblemSubmission {
   code: ReactNode;
   _id: string;
@@ -111,7 +111,7 @@ const SubmissionPage = ({ params }: { params: { classId: string; postId: string;
       }
 
       const evaluationResults = await response.json();
-  
+      alert("Evaluation complete!");
       if (evaluationResults.skippedSubmissions && evaluationResults.skippedSubmissions.length > 0) {
         const skippedMsg = evaluationResults.skippedSubmissions
           .map(sub => `${sub.problemId} - ${sub.message}`)
@@ -173,6 +173,7 @@ const SubmissionPage = ({ params }: { params: { classId: string; postId: string;
               disabled={evaluating || problemResults.length > 0}
             >
               {evaluating ? 'Evaluating...' : 'Evaluate'}
+              
             </button>
             {evaluating && (
               <div className="absolute inset-0 flex justify-center items-center bg-gray-50 bg-opacity-75">

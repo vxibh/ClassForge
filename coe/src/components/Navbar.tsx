@@ -45,7 +45,7 @@ const Navbar = () => {
 
   
   return (
-    <nav className="w-full h-16 bg-gray-700 fixed top-0 left-0 right-0 bottom-0">
+    <nav className="w-full h-16 bg-gray-700 fixed top-0 left-0 right-0 bottom-0" style={{"zIndex" : 1000}}>
       <div className="flex justify-between mx-auto lg:max-w-7xl md:items-center md:flex md:px-8">
         <div className="flex items-center" style={{ }}>
           <Link href="/" legacyBehavior>

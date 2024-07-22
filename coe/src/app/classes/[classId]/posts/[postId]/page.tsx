@@ -169,7 +169,7 @@ const PostPage = ({ params }: { params: { classId: string; postId: string } }) =
 
       if (response.ok) {
         setSubmissionStatus('Submitted');
-        toast.success('Post submitted successfully');
+        alert('Post submitted successfully');
       } else {
         console.error('Failed to submit post');
         toast.error('Failed to submit post');

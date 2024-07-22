@@ -5,13 +5,16 @@ import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import AnnouncementBar from '@/components/AnnouncementBar';
+import Header from '@/components/Header';
 import { ClimbingBoxLoader } from 'react-spinners';
+import { styleText } from 'util';
 
 export default function Dashboard() {
   const router = useRouter();
   const [isLoaded, setIsLoaded] = useState(false);
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [userDetails, setUserDetails] = useState({ name: 'User' });
+  const [activeItem, setActiveItem] = useState('dashboard');
 
   const fetchUserDetails = async () => {
     try {
@@ -72,6 +75,10 @@ export default function Dashboard() {
     };
   }, [router]);
 
+  if (!isLoaded) {
+    return <div> <ClimbingBoxLoader /> </div>;
+  }
+
   const handleMenuItemClick = (itemId) => {
     // Implement logic to change content based on the clicked menu item if needed
   };
@@ -81,9 +88,8 @@ export default function Dashboard() {
       <Navbar />
       <div className="flex flex-1" style={{ marginTop: "56px" }}>
         <Sidebar onItemClick={handleMenuItemClick} />
-        <div className="flex-1 p-4 bg-gray-100 overflow-y-auto">
-          <div>Welcome, {userDetails?.name || 'User'}</div>
-          {/* Add your main content here */}
+        <div className="flex-1 bg-gray-100 overflow-y-auto border">
+              <Header userName={userDetails?.name}/>         
         </div>
         <AnnouncementBar />
       </div>

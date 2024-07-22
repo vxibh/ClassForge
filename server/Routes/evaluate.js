@@ -64,9 +64,10 @@ function extractExpectedOutput(htmlContent) {
 
 function removeAllSpecialCharsAndLowercase(str) {
   return str
-      .replace(/[\[\](),.\s\u200B-\u200D\uFEFF\u00A0\u1680\u180E\u2000-\u200A\u202F\u205F\u3000]+/g, '')
-      .toLowerCase();
+    .replace(/[\[\](),.\s\u200B-\u200D\uFEFF\u00A0\u1680\u180E\u2000-\u200A\u202F\u205F\u3000"'`~´]+/g, '')
+    .toLowerCase();
 }
+
 
 // Function to compare actual and expected outputs
 function compareOutputs(expected, actual) {
