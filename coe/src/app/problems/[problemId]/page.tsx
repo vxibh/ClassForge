@@ -223,9 +223,7 @@ const ProblemPage = ({ params }: { params: { classId: string } } ) => {
     } finally {
       setProcessing(false);
     }
-  };  
-  
-  
+  };
 
   if (loading) {
     return (
@@ -290,16 +288,18 @@ const ProblemPage = ({ params }: { params: { classId: string } } ) => {
               >
                 {processing ? "Processing..." : "Compile and Execute"}
               </button>
+              {postId && (
               <button
                 onClick={submitCode}
-                disabled={isLoadingSubmit || !code}
+                disabled={isLoadingSubmit}
                 className={classnames(
-                  "border-2 border-black z-10 rounded-md shadow-[5px_5px_0px_0px_rgba(0,0,0)] px-4 py-2 hover:shadow transition duration-200 bg-white",
+                  'border-2 border-black z-10 rounded-md shadow-[5px_5px_0px_0px_rgba(0,0,0)] px-4 py-2 hover:shadow transition duration-200 bg-white',
                   isLoadingSubmit || !code ? "opacity-50" : ""
                 )}
               >
-                {isLoadingSubmit ? "Submitting..." : "Submit"}
+                {isLoadingSubmit ? 'Submitting...' : 'Submit'}
               </button>
+            )}
               {outputDetails && <OutputDetails outputDetails={outputDetails} />}
               </div>
             <OutputWindow outputDetails={outputDetails} />

@@ -36,30 +36,32 @@ async function fetchProblemDetail(titleSlug) {
 
 // Function to extract expected output from HTML content
 function extractExpectedOutput(htmlContent) {
-    const dom = new JSDOM(htmlContent);
-    const document = dom.window.document;
-    const outputElements = document.querySelectorAll('pre');
+  const dom = new JSDOM(htmlContent);
+  const document = dom.window.document;
+  
+  const outputElements = document.querySelectorAll('pre, .example-block p');
 
-   // console.log('Output Elements:', outputElements.length);
+  const outputs = Array.from(outputElements).map(element => {
+      let text = element.textContent.trim();
 
-    const outputs = Array.from(outputElements).map(pre => {
-        let text = pre.textContent.trim();
-       // console.log('Pre Text:', text);
+      // Check if the element is from an example block
+      if (element.parentElement && element.parentElement.classList.contains('example-block')) {
+          const match = text.match(/Output:\s*(\S+)/);
+          if (match) {
+              return normalizeWhitespace(match[1]);
+          }
+      } else {
+          // Handle pre elements or other generic output formats
+          const match = text.match(/Output:\s*(\S+)/);
+          if (match) {
+              return normalizeWhitespace(match[1]);
+          }
+      }
 
-        // Update regex pattern to match the plain output
-        const match = text.match(/Output:\s*(\S+)/);
+      return ''; // Return empty if no expected output found
+  }).filter(output => output.length > 0); // Filter out empty outputs
 
-        if (match) {
-         //   console.log('Matched Output:', match[1]);
-            const outputText = match[1];
-            return normalizeWhitespace(outputText);
-        }
-
-        return ''; // Return empty if no expected output found
-    }).filter(output => output.length > 0); // Filter out empty outputs
-
-  //  console.log('Extracted expected outputs:', outputs);
-    return outputs;
+  return outputs;
 }
 
 function removeAllSpecialCharsAndLowercase(str) {
@@ -71,6 +73,8 @@ function removeAllSpecialCharsAndLowercase(str) {
 
 // Function to compare actual and expected outputs
 function compareOutputs(expected, actual) {
+    console.log('Expected:', expected);
+    console.log('Actual:', actual);
     const cleanedExpected = removeAllSpecialCharsAndLowercase(expected);
     const cleanedActual = removeAllSpecialCharsAndLowercase(actual);
     return cleanedExpected === cleanedActual;
@@ -93,7 +97,7 @@ async function fetchResults(tokens) {
         const response = await fetch(url, { headers });
         if (!response.ok) throw new Error(`Fetch result failed with status ${response.status}`);
         const result = await response.json();
-        console.log('Fetch result response:', result, result.status);
+        //console.log('Fetch result response:', result, result.status);
         return result;
     } catch (error) {
         console.error('Fetch result error:', error);
@@ -190,23 +194,44 @@ router.post('/', async (req, res) => {
           const problemDetail = await fetchProblemDetail(submission.problemId);
           const { exampleTestcaseList, content } = problemDetail;
           const expectedOutputs = extractExpectedOutput(content);
-        console.log('Expected Outputs:', expectedOutputs);
+          console.log('Expected Outputs:', expectedOutputs);
           if (expectedOutputs.length !== exampleTestcaseList.length) {
             console.error('Mismatch between the number of test cases and expected outputs');
             console.error('Expected Outputs:', expectedOutputs);
             console.error('Example Testcase List:', exampleTestcaseList);
             throw new Error('Mismatch between the number of test cases and expected outputs');
           }
-  
-          return exampleTestcaseList.map((stdin, index) => ({
-            source_code: submission.code,
-            language_id: 76, // Adjust as needed
-            stdin,
-            expected_output: expectedOutputs[index]
-          }));
+      
+          return exampleTestcaseList.map((stdin, index) => {
+            const formattedStdin = formatInput(stdin);
+            console.log('formatted:', formattedStdin);
+            return {
+              source_code: submission.code,
+              language_id: 76, // Adjust as needed
+              stdin: formattedStdin,
+              expected_output: expectedOutputs[index],
+            };
+          });
         })
       );
-  
+      
+      function formatInput(input) {
+        console.log('input type:', typeof input);
+        if (typeof input === 'string' && input.startsWith('[') && input.endsWith(']')) {
+          // Convert string to array
+          input = JSON.parse(input);
+        }
+        
+        if (Array.isArray(input)) {
+          // Remove brackets and replace commas with spaces
+          return input.join(' ');
+        } else if (typeof input === 'string') {
+          // Remove quotes
+          return input.replace(/['"]+/g, '');
+        }
+        return input;
+      }
+       
       const flattenedSubmissions = submissions.flat();
   
       const submissionResponse = await submitBatch(flattenedSubmissions);
@@ -217,6 +242,7 @@ router.post('/', async (req, res) => {
       const resultsWithPassedCount = results.submissions.map((submissionResult, index) => {
         const expectedOutput = flattenedSubmissions[index].expected_output;
         const actualOutput = submissionResult?.stdout?.trim() || 'N/A';
+        // console.log(submissionResult);
   
         const cleanedExpected = removeAllSpecialCharsAndLowercase(expectedOutput);
         const cleanedActual = removeAllSpecialCharsAndLowercase(actualOutput);
@@ -224,7 +250,7 @@ router.post('/', async (req, res) => {
         const isMatch = compareOutputs(cleanedExpected, cleanedActual);
   
         console.log('Expected:', cleanedExpected);
-        console.log('Actual:', cleanedActual);
+        console.log('Our Code:', cleanedActual);
         return {
           ...submissionResult,
           passed: isMatch ? 1 : 0,

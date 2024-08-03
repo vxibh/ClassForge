@@ -161,14 +161,30 @@ const PostPage = ({ params }: { params: { classId: string; postId: string } }) =
         const data: PostSubmission[] = await response.json();
   
         const updatedData = data.map(submission => {
-          const totalScore = submission.problemSubmissions.reduce((acc, problem) => acc + problem.score, 0);
-          const totalNumOfTestCases = submission.problemSubmissions.reduce((acc, problem) => acc + problem.totalNumberOfTestCases, 0);
+          console.log("Processing submission:", submission);
+        
+          const totalScore = submission.problemSubmissions.reduce((acc, problem) => {
+            console.log("Problem score:", problem.score);
+            return acc + problem.score;
+          }, 0);
+        
+          const totalNumOfTestCases = submission.problemSubmissions.reduce((acc, problem) => {
+            console.log("Problem totalNumberOfTestCases:", problem.totalNumberOfTestCases);
+            return acc + problem.totalNumberOfTestCases;
+          }, 0);
+        
+          console.log("Calculated totalScore:", totalScore);
+          console.log("Calculated totalNumOfTestCases:", totalNumOfTestCases);
+        
           return {
             ...submission,
             totalScore,
             totalNumOfTestCases,
           };
         });
+        
+        console.log("Updated data:", updatedData);
+        
 
         setPostSubmissions(updatedData);
 

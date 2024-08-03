@@ -3,7 +3,7 @@ import React from "react";
 const OutputWindow = ({ outputDetails }) => {
   const isBase64 = (str) => {
     try {
-      return btoa(atob(str)) === str;
+      return (atob(str)) === str;
     } catch (err) {
       return false;
     }
