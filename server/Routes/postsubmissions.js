@@ -90,6 +90,24 @@ router.get('/post/:postId', async (req, res) => {
   }
 });
 
+router.get('/:submissionId', async (req, res) => {
+  try {
+    const { submissionId } = req.params;
+
+    // Find the post submission by its ID
+    const postSubmission = await PostSubmission.findById(submissionId).populate('problemSubmissions');
+
+    if (!postSubmission) {
+      return res.status(404).json({ message: 'Post submission not found' });
+    }
+
+    res.json(postSubmission);
+  } catch (error) {
+    console.error('Error fetching post submission:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // Route to get a post submission by its ID
 router.get('/:submissionId', async (req, res) => {
   try {

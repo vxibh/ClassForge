@@ -97,4 +97,23 @@ router.put('/update-status/:id', async (req, res) => {
   }
 });
 
+async function getProblemSubmissionById(req, res, next) {
+  const problemSubmissionId = req.params.problemSubmissionId;
+  try {
+    const problemSubmission = await ProblemSubmission.findById(problemSubmissionId);
+    if (!problemSubmission) {
+      return res.status(404).json({ message: 'Problem submission not found' });
+    }
+    res.problemSubmission = problemSubmission;
+    next();
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+}
+
+// GET route to fetch a problem submission by its ID
+router.get('/:problemSubmissionId', getProblemSubmissionById, (req, res) => {
+  res.json(res.problemSubmission);
+});
+
 module.exports = router;

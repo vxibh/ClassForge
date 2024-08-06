@@ -1,25 +1,64 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-
+import { useEffect } from 'react';
 interface SidebarProps {
   onItemClick: (item: string) => void;
 }
+
+
+
 
 const Sidebar: React.FC<SidebarProps> = ({ onItemClick }) => {
   const [activeItem, setActiveItem] = useState<string>('');
   const [enrolledDropdownOpen, setEnrolledDropdownOpen] = useState<boolean>(false);
   const router = useRouter();
+  const [isTeacher, setIsTeacher] = useState<boolean>(false);
+  const [data, setData] = useState<{ name: string }>({ name: '' });
   const menuItems = [
     { id: 'dashboard', name: 'Dashboard' },
     { id: 'enrolled', name: 'Enrolled' },
     { id: 'problems', name: 'Problems' },
     { id: 'to-do', name: 'To-Do' },
-    { id: 'submissions', name: 'Submissions' },
+    ...(isTeacher ? [{ id: 'submissions', name: 'Submissions' }] : []),
     { id: 'discussions', name: 'Discussions' },
     { id: 'leaderboard', name: 'Leaderboard' },
     { id: 'profile', name: 'Profile' },
     { id: 'resources', name: 'Resources' }
   ];
+
+  useEffect(() => {
+    const fetchUserDetails = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        console.log('Token:', token);
+        if (!token) {
+          throw new Error('No token found');
+        }
+  
+        const response = await fetch('http://localhost:5000/api/users/me', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+  
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+  
+        const data = await response.json();
+        console.log('User details fetched:', data); // Log the response
+        setData({ name: data.name });        
+        // Set the isTeacher state based on the fetched user data
+        setIsTeacher(data.isTeacher);
+      } catch (error) {
+        console.error('Error fetching user details:', error);
+      }
+    };
+  
+    fetchUserDetails();
+  }, []);
 
   const enrolledClasses = [
     { id: 'class1', name: 'Class 1' },
@@ -44,6 +83,12 @@ const Sidebar: React.FC<SidebarProps> = ({ onItemClick }) => {
         break;  
       case 'to-do':
         router.push('/to-do');
+        break;
+      case 'submissions':
+        router.push('/submissions');
+        break;   
+      case 'profile':
+        router.push('/profile');
         break;   
       // Add more cases as needed
       default:
@@ -72,6 +117,6 @@ const Sidebar: React.FC<SidebarProps> = ({ onItemClick }) => {
       </ul>
     </div>
   );
-};
+}
 
 export default Sidebar;

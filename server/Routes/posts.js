@@ -86,6 +86,37 @@ router.post('/:classId/posts', upload.single('file'), getClass, async (req, res)
   }
 });
 
+
+// Middleware to get a post by postId
+async function getPostById(req, res, next) {
+  const postId = req.params.postId;
+  try {
+    // Find the class that contains the post with the given postId
+    const classWithPost = await Class.findOne({ 'posts._id': postId });
+
+    if (!classWithPost) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    // Find the post within the class
+    const post = classWithPost.posts.id(postId);
+
+    if (!post) {
+      return res.status(404).json({ message: 'Cannot find post' });
+    }
+
+    res.post = post;
+    next();
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+}
+
+// GET route to fetch a post by its ID
+router.get('/posts/:postId', getPostById, (req, res) => {
+  res.json(res.post);
+});
+
 // Get all posts in a specific class
 router.get('/:classId/posts', getClass, (req, res) => {
   res.json(res.class.posts);

@@ -74,12 +74,6 @@ const Navbar = () => {
               <div className="input-group-prepend bg-transparent">
                 <i className="input-group-text mdi mdi-magnify"></i>
               </div>
-              <input
-                type="text"
-                className="form-control"
-                style={{ borderRadius: '4px', width: '22rem', textAlign: 'center', color: 'white', backgroundColor: '#393838' }}
-                placeholder="Search problems"
-              />
             </div>
           </form>
         </div>
